@@ -33,6 +33,14 @@ executeContent = ->
       #{difference} new comments
     </span>
     """
+  markUnread = (ticket) ->
+    console.log 'NEW'
+    $el = $("li[data-issue-id='#{ticket}']")
+    $el.find('.issue-title > a').append """
+    <span class = 'new-comments' style= 'color:green;'>
+      unread ticket
+    </span>
+    """
 
 
   teacup = window.window.teacup
@@ -43,7 +51,7 @@ executeContent = ->
   search_page = !!$('#js-issues-search')?.length
   console.log 'wakka'
   if search_page
-    console.log 'here'
+    console.log 'ISSUES PAGE FOUND'
     query = $('#js-issues-search').val()
     repo = $('head > meta[property="og:title"]').attr('content')
 
@@ -61,11 +69,15 @@ executeContent = ->
       per_page: per_page
       }, (data) ->
         for item in data?.items or []
-          continue unless localStorage[item.html_url]
+          $("li[data-issue-id='#{item.number}'] .new-comments").remove()
+          if not localStorage[item.html_url]
+            markUnread item.number
+            continue
+
           comments = item.comments + 1
           num = parseInt localStorage[item.html_url]
           console.log num, comments, 'panda'
-          $("li[data-issue-id='#{item.number}'] .new-comments").remove()
+
           if num < comments
             markNew(item.number, comments - num)
           else if num > comments
@@ -75,10 +87,9 @@ executeContent = ->
             console.log 'do nothing they are equal'
   else
     # don't do it for new pages
-    console.log 'WAHT'
-    return if window.location.href.indexOf('issues/new') != -1
-    return if window.location.href.indexOf('/issues/') != -1
-    console.log 'rrrrr'
+
+    return unless /issues\/\d+$/.test window.location.href
+    console.log 'TICKET FOUND'
     inject_key = =>
       console.log 'injection'
       key = window.location.href

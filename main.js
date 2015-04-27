@@ -16,7 +16,7 @@
   }), 1000);
 
   executeContent = function() {
-    var a, coffeescript, div, h1, h3, iframe, img, inject_key, input, link, markNew, old_entry, p, page, parseQueryString, per_page, query, query_str, raw, repo, script, search_page, span, teacup, url, _ref;
+    var a, coffeescript, div, h1, h3, iframe, img, inject_key, input, link, markNew, markUnread, old_entry, p, page, parseQueryString, per_page, query, query_str, raw, repo, script, search_page, span, teacup, url, _ref;
     console.log('CONTENT EXECUTED');
     parseQueryString = function() {
       var objURL, str;
@@ -33,6 +33,12 @@
       $el = $("li[data-issue-id='" + ticket + "']");
       return $el.find('.issue-title > a').append("<span class = 'new-comments' style= 'color:purple;'>\n  " + difference + " new comments\n</span>");
     };
+    markUnread = function(ticket) {
+      var $el;
+      console.log('NEW');
+      $el = $("li[data-issue-id='" + ticket + "']");
+      return $el.find('.issue-title > a').append("<span class = 'new-comments' style= 'color:green;'>\n  unread ticket\n</span>");
+    };
     teacup = window.window.teacup;
     span = teacup.span, div = teacup.div, a = teacup.a, h1 = teacup.h1, h3 = teacup.h3, p = teacup.p, iframe = teacup.iframe, raw = teacup.raw, script = teacup.script, coffeescript = teacup.coffeescript, link = teacup.link, input = teacup.input, img = teacup.img;
     old_entry = null;
@@ -41,7 +47,7 @@
     search_page = !!((_ref = $('#js-issues-search')) != null ? _ref.length : void 0);
     console.log('wakka');
     if (search_page) {
-      console.log('here');
+      console.log('ISSUES PAGE FOUND');
       query = $('#js-issues-search').val();
       repo = $('head > meta[property="og:title"]').attr('content');
       query = query.replace(/\s/g, '+');
@@ -60,13 +66,14 @@
         _results = [];
         for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
           item = _ref1[_i];
+          $("li[data-issue-id='" + item.number + "'] .new-comments").remove();
           if (!localStorage[item.html_url]) {
+            markUnread(item.number);
             continue;
           }
           comments = item.comments + 1;
           num = parseInt(localStorage[item.html_url]);
           console.log(num, comments, 'panda');
-          $("li[data-issue-id='" + item.number + "'] .new-comments").remove();
           if (num < comments) {
             _results.push(markNew(item.number, comments - num));
           } else if (num > comments) {
@@ -78,14 +85,10 @@
         return _results;
       });
     } else {
-      console.log('WAHT');
-      if (window.location.href.indexOf('issues/new') !== -1) {
+      if (!/issues\/\d+$/.test(window.location.href)) {
         return;
       }
-      if (window.location.href.indexOf('/issues/') !== -1) {
-        return;
-      }
-      console.log('rrrrr');
+      console.log('TICKET FOUND');
       inject_key = (function(_this) {
         return function() {
           var comments, key, _ref1;

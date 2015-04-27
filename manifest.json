@@ -21,7 +21,7 @@
     "scripts": ["index.js", "ajaxer.js"]
   },
   "content_scripts": [ {
-    "matches": [ "https://github.com/*/issues*"],
+    "matches": [ "https://github.com/*"],
     "css": ["animate.css"],
     "js": [ "jquery.min.js", "teacup.js", "async.min.js", "main.js" ],
     "run_at": "document_end"
