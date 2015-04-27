@@ -43,9 +43,8 @@
     span = teacup.span, div = teacup.div, a = teacup.a, h1 = teacup.h1, h3 = teacup.h3, p = teacup.p, iframe = teacup.iframe, raw = teacup.raw, script = teacup.script, coffeescript = teacup.coffeescript, link = teacup.link, input = teacup.input, img = teacup.img;
     old_entry = null;
     url = parseQueryString();
-    console.log(localStorage, 'wakka');
+    console.log(localStorage);
     search_page = !!((_ref = $('#js-issues-search')) != null ? _ref.length : void 0);
-    console.log('wakka');
     if (search_page) {
       console.log('ISSUES PAGE FOUND');
       query = $('#js-issues-search').val();
@@ -92,10 +91,8 @@
       inject_key = (function(_this) {
         return function() {
           var comments, key, _ref1;
-          console.log('injection');
           key = window.location.href;
           comments = (_ref1 = $('.timeline-comment-wrapper > .comment')) != null ? _ref1.length : void 0;
-          console.log('set', key, comments);
           return localStorage[key] = comments;
         };
       })(this);

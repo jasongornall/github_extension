@@ -47,9 +47,8 @@ executeContent = ->
   {span, div, a, h1, h3, p, iframe, raw, script, coffeescript, link, input, img} = teacup
   old_entry = null
   url = parseQueryString()
-  console.log localStorage, 'wakka'
+  console.log localStorage
   search_page = !!$('#js-issues-search')?.length
-  console.log 'wakka'
   if search_page
     console.log 'ISSUES PAGE FOUND'
     query = $('#js-issues-search').val()
@@ -91,10 +90,8 @@ executeContent = ->
     return unless /issues\/\d+$/.test window.location.href
     console.log 'TICKET FOUND'
     inject_key = =>
-      console.log 'injection'
       key = window.location.href
       comments = $('.timeline-comment-wrapper > .comment')?.length
-      console.log 'set', key, comments
       localStorage[key] = comments
     inject_key()
 
