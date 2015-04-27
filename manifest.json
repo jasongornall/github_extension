@@ -1,0 +1,29 @@
+{
+  "name": "GitHub Auth Sample",
+  "version": "3.1",
+  "manifest_version": 2,
+  "key": "MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCXZ6+N4gRLyUUtj79Z3TClsrA32yU9ekkdKXlGylaRhtjMNLN+oBekfDsBfASdkGu35r48v+GiHgCTeySFgm/MfOBavutudcr1Cm/+CD6Y7XSQBMHQn06sJgsMk0eG6FcP797Ofig2MHmouaoHCPfpmXfcbgZZYioh29PWJ6oq7QIDAQAB",
+  "browser_action": {
+    "default_icon": "github-128.png",
+    "default_popup": "index.html"
+  },
+  "icons": {
+    "128": "github-128.png",
+    "48": "github-128.png",
+    "16": "github-128.png"
+  },
+  "permissions": [
+    "identity",
+    "https://github.com/",
+    "tabs"
+  ],
+  "background": {
+    "scripts": ["index.js", "ajaxer.js"]
+  },
+  "content_scripts": [ {
+    "matches": [ "https://github.com/*/issues*"],
+    "css": ["animate.css"],
+    "js": [ "jquery.min.js", "teacup.js", "async.min.js", "main.js" ],
+    "run_at": "document_end"
+  }]
+}
