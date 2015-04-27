@@ -82,6 +82,9 @@
       if (window.location.href.indexOf('issues/new') !== -1) {
         return;
       }
+      if (window.location.href.indexOf('/issues/') !== -1) {
+        return;
+      }
       console.log('rrrrr');
       inject_key = (function(_this) {
         return function() {

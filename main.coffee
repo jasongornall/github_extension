@@ -77,6 +77,7 @@ executeContent = ->
     # don't do it for new pages
     console.log 'WAHT'
     return if window.location.href.indexOf('issues/new') != -1
+    return if window.location.href.indexOf('/issues/') != -1
     console.log 'rrrrr'
     inject_key = =>
       console.log 'injection'
