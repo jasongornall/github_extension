@@ -2,32 +2,49 @@
 (function() {
   chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
     var query;
-    console.log('hit');
+    console.log('hit', gh);
     switch (request.type) {
       case 'user-info':
-        console.log('hit', gh);
-        console.log(gh, '123');
-        gh.xhrWithAuth('GET', 'https://api.github.com/user', false, function(error, status, response) {
+        gh.xhrWithAuth('GET', 'https://api.github.com/user', true, function(error, status, response) {
           var json;
           json = JSON.parse(response);
-          console.log(error, status, response, 'wakka');
-          return sendResponse(json);
+          if (error) {
+            chrome.browserAction.setIcon({
+              path: "github-bad.png"
+            });
+            return sendResponse({
+              error: error
+            });
+          } else {
+            return sendResponse(json);
+          }
         });
         break;
       case 'search-info':
         query = "https://api.github.com/search/issues?q=" + request.query + "+repo:" + request.repo + "&page=" + request.page + "&per_page=" + request.per_page;
         gh.xhrWithAuth('GET', query, false, function(error, status, response) {
           var json;
-          console.log(error, status, response);
           json = JSON.parse(response);
-          return sendResponse(json);
+          if (error) {
+            return chrome.browserAction.setIcon({
+              path: "github-bad.png"
+            });
+          } else {
+            return sendResponse(json);
+          }
         });
         break;
       case 'rate-limit':
         gh.xhrWithAuth('GET', "https://api.github.com/rate_limit", false, function(error, status, response) {
           var json;
           json = JSON.parse(response);
-          return sendResponse(json);
+          if (error) {
+            return chrome.browserAction.setIcon({
+              path: "github-bad.png"
+            });
+          } else {
+            return sendResponse(json);
+          }
         });
     }
     return true;

@@ -1,12 +1,25 @@
 <html>
+  <style>
+    *:focus {
+      outline: none;
+    }
+    body {
+      text-align: center;
+      width: 200px;
+    }
+    #user img {
+      width: 100%;
+    }
+  </style>
   <head>
+    <script src="jquery.min.js"></script>
     <script src="index.js"></script>
+    <script src="popup.js"></script>
   </head>
   <body>
     <div id="user_info"></div>
     <button id="signin" style="display:none">Sign in</button>
     <button id="revoke" style="display:none">Revoke token</button>
-    <br><b>Your repos:</b> <br>
-    <textarea id="user_repos" style="width: 95%; min-height: 200px"></textarea>
+    <div id="user"/> Loading.... </div>
   </body>
 </html>

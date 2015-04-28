@@ -9,9 +9,11 @@
   }
 
   window.urlWatchInterval = setInterval((function() {
+    console.log(old_url, window.location.href);
     if (old_url !== window.location.href) {
-      executeContent();
-      return old_url = window.location.href;
+      if (executeContent()) {
+        return old_url = window.location.href;
+      }
     }
   }), 1000);
 
@@ -31,13 +33,13 @@
       var $el;
       console.log('NEW');
       $el = $("li[data-issue-id='" + ticket + "']");
-      return $el.find('.issue-title > a').append("<span class = 'new-comments' style= 'color:purple;'>\n  " + difference + " new comments\n</span>");
+      return $el.find('.issue-title').append("<span class = 'new-comments' style= 'color:purple;'>\n  " + difference + " new comments\n</span>");
     };
     markUnread = function(ticket) {
       var $el;
       console.log('NEW');
       $el = $("li[data-issue-id='" + ticket + "']");
-      return $el.find('.issue-title > a').append("<span class = 'new-comments' style= 'color:green;'>\n  unread ticket\n</span>");
+      return $el.find('.issue-title').append("<span class = 'new-comments' style= 'color:green;'>\n  unread ticket\n</span>");
     };
     teacup = window.window.teacup;
     span = teacup.span, div = teacup.div, a = teacup.a, h1 = teacup.h1, h3 = teacup.h3, p = teacup.p, iframe = teacup.iframe, raw = teacup.raw, script = teacup.script, coffeescript = teacup.coffeescript, link = teacup.link, input = teacup.input, img = teacup.img;
@@ -53,7 +55,7 @@
       query_str = "" + query;
       per_page = $('[data-issue-id]').length;
       page = url.page || '1';
-      return chrome.runtime.sendMessage({
+      chrome.runtime.sendMessage({
         type: 'search-info',
         query: query_str,
         repo: repo,
@@ -61,12 +63,14 @@
         per_page: per_page
       }, function(data) {
         var comments, item, num, _i, _len, _ref1, _results;
+        console.log(data != null ? data.items : void 0, 'panda');
         _ref1 = (data != null ? data.items : void 0) || [];
         _results = [];
         for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
           item = _ref1[_i];
           $("li[data-issue-id='" + item.number + "'] .new-comments").remove();
           if (!localStorage[item.html_url]) {
+            console.log('new?');
             markUnread(item.number);
             continue;
           }
@@ -84,7 +88,7 @@
         return _results;
       });
     } else {
-      if (!/issues\/\d+$/.test(window.location.href)) {
+      if (!/issues\/\d+$|pull\/\d+$/.test(window.location.href)) {
         return;
       }
       console.log('TICKET FOUND');
@@ -93,14 +97,16 @@
           var comments, key, _ref1;
           key = window.location.href;
           comments = (_ref1 = $('.timeline-comment-wrapper > .comment')) != null ? _ref1.length : void 0;
+          console.log(key, comments, 'SET');
           return localStorage[key] = comments;
         };
       })(this);
       inject_key();
-      return window.addEventListener("beforeunload", function(e) {
+      window.addEventListener("beforeunload", function(e) {
         return inject_key();
       });
     }
+    return true;
   };
 
 }).call(this);

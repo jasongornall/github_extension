@@ -3,7 +3,8 @@
   var gh;
 
   gh = (function() {
-    var disableButton, fetchUserRepos, getUserInfo, hideButton, interactiveSignIn, onUserInfoFetched, onUserReposFetched, populateUserInfo, revokeToken, revoke_button, showButton, signin_button, tokenFetcher, user_info_div, xhrWithAuth;
+    var disableButton, error, fetchUserRepos, getUserInfo, handleError, interactiveSignIn, onUserInfoFetched, onUserReposFetched, populateUserInfo, revokeToken, revoke_button, showButton, signin_button, tokenFetcher, user_info_div, xhrWithAuth;
+    error = '';
     xhrWithAuth = function(method, url, interactive, callback) {
       var access_token, getToken, requestComplete, requestStart, retry;
       retry = true;
@@ -52,10 +53,8 @@
         button.disabled = false;
       }
     };
-    hideButton = function(button) {
-      if (button != null) {
-        button.style.display = 'none';
-      }
+    handleError = function(error) {
+      return console.log(error);
     };
     disableButton = function(button) {
       if (button != null) {
@@ -68,12 +67,10 @@
         console.log('Got the following user info: ' + response);
         user_info = JSON.parse(response);
         populateUserInfo(user_info);
-        hideButton(signin_button);
-        showButton(revoke_button);
         fetchUserRepos(user_info['repos_url']);
       } else {
         console.log('infoFetch failed', error, status);
-        showButton(signin_button);
+        handleError(error);
       }
     };
     populateUserInfo = function(user_info) {
@@ -107,11 +104,11 @@
         console.log('infoFetch failed', error, status);
       }
     };
-    interactiveSignIn = function() {
+    interactiveSignIn = function(next) {
       disableButton(signin_button);
       tokenFetcher.getToken(true, function(error, access_token) {
         if (error) {
-          showButton(signin_button);
+          handleError(error);
         } else {
           getUserInfo(true);
         }
@@ -122,8 +119,6 @@
       if (typeof user_info_div !== "undefined" && user_info_div !== null) {
         user_info_div.textContent = '';
       }
-      hideButton(revoke_button);
-      showButton(signin_button);
     };
     'use strict';
     signin_button = void 0;
@@ -219,9 +214,13 @@
       };
     })();
     return {
+      error: error,
+      tokenFetcher: tokenFetcher,
       revokeToken: revokeToken,
       xhrWithAuth: xhrWithAuth,
       interactiveSignIn: interactiveSignIn,
+      revokeToken: revokeToken,
+      getUserInfo: getUserInfo,
       onload: function() {
 
         /*

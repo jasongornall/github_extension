@@ -8,9 +8,10 @@
 old_url = ''
 clearInterval window.urlWatchInterval if window.urlWatchInterval
 window.urlWatchInterval  = setInterval ( ->
+  console.log old_url, window.location.href
   if (old_url != window.location.href)
-    executeContent()
-    old_url = window.location.href
+    if executeContent()
+      old_url = window.location.href
 ), 1000
 
 
@@ -28,7 +29,7 @@ executeContent = ->
   markNew = (ticket, difference) ->
     console.log 'NEW'
     $el = $("li[data-issue-id='#{ticket}']")
-    $el.find('.issue-title > a').append """
+    $el.find('.issue-title').append """
     <span class = 'new-comments' style= 'color:purple;'>
       #{difference} new comments
     </span>
@@ -36,7 +37,7 @@ executeContent = ->
   markUnread = (ticket) ->
     console.log 'NEW'
     $el = $("li[data-issue-id='#{ticket}']")
-    $el.find('.issue-title > a').append """
+    $el.find('.issue-title').append """
     <span class = 'new-comments' style= 'color:green;'>
       unread ticket
     </span>
@@ -67,9 +68,11 @@ executeContent = ->
       page: page
       per_page: per_page
       }, (data) ->
+        console.log data?.items, 'panda'
         for item in data?.items or []
           $("li[data-issue-id='#{item.number}'] .new-comments").remove()
           if not localStorage[item.html_url]
+            console.log 'new?'
             markUnread item.number
             continue
 
@@ -87,16 +90,19 @@ executeContent = ->
   else
     # don't do it for new pages
 
-    return unless /issues\/\d+$/.test window.location.href
+    return unless /issues\/\d+$|pull\/\d+$/.test window.location.href
     console.log 'TICKET FOUND'
     inject_key = =>
       key = window.location.href
       comments = $('.timeline-comment-wrapper > .comment')?.length
+      console.log key, comments, 'SET'
       localStorage[key] = comments
     inject_key()
 
     window.addEventListener "beforeunload", (e) ->
       inject_key()
+
+  return true
 
 
 

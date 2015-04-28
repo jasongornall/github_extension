@@ -1,5 +1,5 @@
 gh = do ->
-
+  error = ''
   xhrWithAuth = (method, url, interactive, callback) ->
     retry = true
     access_token = undefined
@@ -49,9 +49,8 @@ gh = do ->
     button?.disabled = false
     return
 
-  hideButton = (button) ->
-    button?.style.display = 'none'
-    return
+  handleError = (error) ->
+   console.log error
 
   disableButton = (button) ->
     button?.disabled = true
@@ -62,12 +61,10 @@ gh = do ->
       console.log 'Got the following user info: ' + response
       user_info = JSON.parse(response)
       populateUserInfo user_info
-      hideButton signin_button
-      showButton revoke_button
       fetchUserRepos user_info['repos_url']
     else
       console.log 'infoFetch failed', error, status
-      showButton signin_button
+      handleError error
     return
 
   populateUserInfo = (user_info) ->
@@ -100,11 +97,11 @@ gh = do ->
 
   # Handlers for the buttons's onclick events.
 
-  interactiveSignIn = ->
+  interactiveSignIn = (next) ->
     disableButton signin_button
     tokenFetcher.getToken true, (error, access_token) ->
       if error
-        showButton signin_button
+        handleError error
       else
         getUserInfo true
       return
@@ -118,8 +115,6 @@ gh = do ->
     # in again. If the user dismissed the page they were presented with,
     # Sign in button will simply sign them in.
     user_info_div?.textContent = ''
-    hideButton revoke_button
-    showButton signin_button
     return
 
   'use strict'
@@ -217,9 +212,13 @@ gh = do ->
 
     }
   {
+    error: error
+    tokenFetcher: tokenFetcher
     revokeToken: revokeToken
     xhrWithAuth: xhrWithAuth
     interactiveSignIn: interactiveSignIn
+    revokeToken: revokeToken
+    getUserInfo: getUserInfo
     onload: ->
       ###
       signin_button = document.querySelector('#signin');
