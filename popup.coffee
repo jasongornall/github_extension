@@ -31,6 +31,7 @@ $(document).ready ->
       gh.interactiveSignIn ->
         $('#signin').hide()
         $('#revoke').show()
+        chrome.browserAction.setIcon {path:"github-good.png"}
         renderUser()
 
     $('#revoke').on 'click', (e)->

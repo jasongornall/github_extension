@@ -3,33 +3,33 @@ chrome.runtime.onMessage.addListener (request, sender, sendResponse) ->
   switch request.type
     when 'user-info'
       gh.xhrWithAuth 'GET', 'https://api.github.com/user', true, (error, status, response) ->
-        json = JSON.parse(response)
         if error
           chrome.browserAction.setIcon {path:"github-bad.png"}
           gh.revokeToken()
           sendResponse {error: error}
         else
+          json = JSON.parse(response)
           chrome.browserAction.setIcon {path:"github-good.png"}
           sendResponse json
 
      when 'search-info'
       query  = "https://api.github.com/search/issues?q=#{request.query}+repo:#{request.repo}&page=#{request.page}&per_page=#{request.per_page}"
       gh.xhrWithAuth 'GET', query, false, (error, status, response) ->
-        json = JSON.parse(response)
         if error
           chrome.browserAction.setIcon {path:"github-bad.png"}
           gh.revokeToken()
         else
+          json = JSON.parse(response)
           chrome.browserAction.setIcon {path:"github-good.png"}
           sendResponse json
 
      when  'rate-limit'
       gh.xhrWithAuth 'GET', "https://api.github.com/rate_limit", false, (error, status, response) ->
-        json = JSON.parse(response)
         if error
           chrome.browserAction.setIcon {path:"github-bad.png"}
           gh.revokeToken()
         else
+          json = JSON.parse(response)
           chrome.browserAction.setIcon {path:"github-good.png"}
           sendResponse json
 

@@ -7,7 +7,6 @@
       case 'user-info':
         gh.xhrWithAuth('GET', 'https://api.github.com/user', true, function(error, status, response) {
           var json;
-          json = JSON.parse(response);
           if (error) {
             chrome.browserAction.setIcon({
               path: "github-bad.png"
@@ -17,6 +16,7 @@
               error: error
             });
           } else {
+            json = JSON.parse(response);
             chrome.browserAction.setIcon({
               path: "github-good.png"
             });
@@ -28,13 +28,13 @@
         query = "https://api.github.com/search/issues?q=" + request.query + "+repo:" + request.repo + "&page=" + request.page + "&per_page=" + request.per_page;
         gh.xhrWithAuth('GET', query, false, function(error, status, response) {
           var json;
-          json = JSON.parse(response);
           if (error) {
             chrome.browserAction.setIcon({
               path: "github-bad.png"
             });
             return gh.revokeToken();
           } else {
+            json = JSON.parse(response);
             chrome.browserAction.setIcon({
               path: "github-good.png"
             });
@@ -45,13 +45,13 @@
       case 'rate-limit':
         gh.xhrWithAuth('GET', "https://api.github.com/rate_limit", false, function(error, status, response) {
           var json;
-          json = JSON.parse(response);
           if (error) {
             chrome.browserAction.setIcon({
               path: "github-bad.png"
             });
             return gh.revokeToken();
           } else {
+            json = JSON.parse(response);
             chrome.browserAction.setIcon({
               path: "github-good.png"
             });

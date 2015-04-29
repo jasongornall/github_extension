@@ -26,6 +26,9 @@
         return gh.interactiveSignIn(function() {
           $('#signin').hide();
           $('#revoke').show();
+          chrome.browserAction.setIcon({
+            path: "github-good.png"
+          });
           return renderUser();
         });
       });
