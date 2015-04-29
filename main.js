@@ -32,19 +32,43 @@
       return objURL;
     };
     markNew = function(ticket, difference) {
-      var $el;
-      $el = $("li[data-issue-id='" + ticket + "']");
-      return $el.find('.issue-title').append("<span class = 'new-comments' style= 'color:purple;'>\n  " + difference + " new comments\n</span>");
+      return chrome.runtime.sendMessage({
+        type: 'get-config',
+        config: 'new'
+      }, function(data) {
+        var $el;
+        if (data !== 'true') {
+          return;
+        }
+        $el = $("li[data-issue-id='" + ticket + "']");
+        return $el.find('.issue-title').append("<span class = 'new-comments' style= 'color:purple;'>\n  " + difference + " new comments\n</span>");
+      });
     };
     markUnread = function(ticket) {
-      var $el;
-      $el = $("li[data-issue-id='" + ticket + "']");
-      return $el.find('.issue-title').append("<span class = 'new-comments' style= 'color:green;'>\n  unread ticket\n</span>");
+      return chrome.runtime.sendMessage({
+        type: 'get-config',
+        config: 'unread'
+      }, function(data) {
+        var $el;
+        if (data !== 'true') {
+          return;
+        }
+        $el = $("li[data-issue-id='" + ticket + "']");
+        return $el.find('.issue-title').append("<span class = 'new-comments' style= 'color:green;'>\n  unread ticket\n</span>");
+      });
     };
     markSame = function(ticket) {
-      var $el;
-      $el = $("li[data-issue-id='" + ticket + "']");
-      return $el.find('.issue-title').append("<span class = 'new-comments' style= 'color:orange;'>\n  nothing changed\n</span>");
+      return chrome.runtime.sendMessage({
+        type: 'get-config',
+        config: 'nochange'
+      }, function(data) {
+        var $el;
+        if (data !== 'true') {
+          return;
+        }
+        $el = $("li[data-issue-id='" + ticket + "']");
+        return $el.find('.issue-title').append("<span class = 'new-comments' style= 'color:orange;'>\n  nothing changed\n</span>");
+      });
     };
     teacup = window.window.teacup;
     span = teacup.span, div = teacup.div, a = teacup.a, h1 = teacup.h1, h3 = teacup.h3, p = teacup.p, iframe = teacup.iframe, raw = teacup.raw, script = teacup.script, coffeescript = teacup.coffeescript, link = teacup.link, input = teacup.input, img = teacup.img;

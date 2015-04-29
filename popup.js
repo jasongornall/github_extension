@@ -21,6 +21,7 @@
 
   $(document).ready(function() {
     return gh.tokenFetcher.getToken(false, function(error, access_token) {
+      var el, _i, _len, _ref, _results;
       console.log(access_token, 'PANDA');
       $('#signin').on('click', function(e) {
         return gh.interactiveSignIn(function() {
@@ -42,12 +43,46 @@
         $('#user').empty();
         $('#signin').hide();
         $('#revoke').show();
-        return renderUser();
+        renderUser();
       } else {
         $('#user').empty();
         $('#signin').show();
-        return $('#revoke').hide();
+        $('#revoke').hide();
       }
+      $('#navigation > div').on('click', function(e) {
+        var $nav, cls;
+        $nav = $(e.currentTarget);
+        cls = $nav.attr('class');
+        return $nav.closest('body').attr('class', cls);
+      });
+      $('.nav.config > input').on('click', function(e) {
+        var $check, val;
+        $check = $(e.currentTarget);
+        val = $check.val();
+        return chrome.runtime.sendMessage({
+          type: 'set-config',
+          config: val,
+          val: $check.is(':checked')
+        });
+      });
+      _ref = $('.nav.config > input');
+      _results = [];
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        el = _ref[_i];
+        _results.push((function() {
+          var $el, val;
+          $el = $(el);
+          val = $el.val();
+          return chrome.runtime.sendMessage({
+            type: 'get-config',
+            config: val
+          }, function(data) {
+            console.log(data, 'PANDA');
+            return $el.prop('checked', data === 'true' || false);
+          });
+        })());
+      }
+      return _results;
     });
   });
 

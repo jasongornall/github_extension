@@ -1,5 +1,5 @@
 chrome.runtime.onMessage.addListener (request, sender, sendResponse) ->
-  console.log 'hit', gh
+  console.log 'hit', request
   switch request.type
     when 'user-info'
       gh.xhrWithAuth 'GET', 'https://api.github.com/user', true, (error, status, response) ->
@@ -32,6 +32,13 @@ chrome.runtime.onMessage.addListener (request, sender, sendResponse) ->
           json = JSON.parse(response)
           chrome.browserAction.setIcon {path:"github-good.png"}
           sendResponse json
+
+    when 'set-config'
+      localStorage[request.config] = request.val
+      sendResponse {}
+
+    when 'get-config'
+      sendResponse localStorage[request.config]
 
   return true
 

@@ -1,5 +1,19 @@
 <html>
   <style>
+    #navigation {
+      border-bottom: 1px solid black;
+      padding-bottom: 5px;
+    }
+    #navigation > div {
+      display:inline-block;
+      background: lightgray;
+      padding: 5px;
+      margin: 0px 2px;
+      cursor: pointer;
+    }
+    #navigation > div:hover {
+      background: gray;
+    }
     *:focus {
       outline: none;
     }
@@ -10,17 +24,40 @@
     #user img {
       width: 100%;
     }
+    body.auth .nav.auth {
+      display: block;
+    }
+    body.config .nav.config {
+      display: block;
+    }
+    body .nav {
+      display: none;
+    }
+    body .nav.config {
+      text-align: left;
+      margin-top: 10px;
+    }
   </style>
   <head>
     <script src="jquery.min.js"></script>
     <script src="index.js"></script>
     <script src="popup.js"></script>
   </head>
-  <body>
-    <div id="navigation"></div>
-    <div id="user_info"></div>
-    <button id="signin" style="display:none">Sign in</button>
-    <button id="revoke" style="display:none">Revoke token</button>
-    <div id="user"/> Loading.... </div>
+  <body class="auth">
+    <div id="navigation">
+      <div class = "auth">auth</div>
+      <div class = "config">configs</div>
+    </div>
+    <div class= "nav auth">
+      <div id="user_info"></div>
+      <button id="signin" style="display:none">Sign in</button>
+      <button id="revoke" style="display:none">Revoke token</button>
+      <div id="user"/> Loading.... </div>
+    </div>
+    <div class= "nav config">
+      <input type="checkbox" name="unread" value="unread"> show new issues<br>
+      <input type="checkbox" name="new" value="new"> show issues with new comments<br>
+      <input type="checkbox" name="nochange" value="nochange"> show no-change issues<br>
+    </div>
   </body>
 </html>

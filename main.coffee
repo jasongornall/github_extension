@@ -28,27 +28,43 @@ executeContent = ->
     objURL
 
   markNew = (ticket, difference) ->
-    $el = $("li[data-issue-id='#{ticket}']")
-    $el.find('.issue-title').append """
-    <span class = 'new-comments' style= 'color:purple;'>
-      #{difference} new comments
-    </span>
-    """
+    chrome.runtime.sendMessage {
+      type: 'get-config'
+      config: 'new'
+    }, (data) ->
+      return unless data is 'true'
+      $el = $("li[data-issue-id='#{ticket}']")
+      $el.find('.issue-title').append """
+      <span class = 'new-comments' style= 'color:purple;'>
+        #{difference} new comments
+      </span>
+      """
 
   markUnread = (ticket) ->
-    $el = $("li[data-issue-id='#{ticket}']")
-    $el.find('.issue-title').append """
-    <span class = 'new-comments' style= 'color:green;'>
-      unread ticket
-    </span>
-    """
+    chrome.runtime.sendMessage {
+      type: 'get-config'
+      config: 'unread'
+    }, (data) ->
+      return unless data is 'true'
+      $el = $("li[data-issue-id='#{ticket}']")
+      $el.find('.issue-title').append """
+      <span class = 'new-comments' style= 'color:green;'>
+        unread ticket
+      </span>
+      """
+
   markSame = (ticket) ->
-    $el = $("li[data-issue-id='#{ticket}']")
-    $el.find('.issue-title').append """
-    <span class = 'new-comments' style= 'color:orange;'>
-      nothing changed
-    </span>
-    """
+    chrome.runtime.sendMessage {
+      type: 'get-config'
+      config: 'nochange'
+    }, (data) ->
+      return unless data is 'true'
+      $el = $("li[data-issue-id='#{ticket}']")
+      $el.find('.issue-title').append """
+      <span class = 'new-comments' style= 'color:orange;'>
+        nothing changed
+      </span>
+      """
 
 
   teacup = window.window.teacup

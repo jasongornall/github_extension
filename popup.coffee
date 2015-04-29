@@ -50,4 +50,29 @@ $(document).ready ->
       $('#signin').show()
       $('#revoke').hide()
 
+    $('#navigation > div').on 'click', (e) ->
+      $nav = $ e.currentTarget
+      cls = $nav.attr('class')
+      $nav.closest('body').attr('class', cls)
+
+
+    $('.nav.config > input').on 'click', (e) ->
+      $check = $ e.currentTarget
+      val = $check.val()
+      chrome.runtime.sendMessage {
+        type: 'set-config'
+        config: val
+        val: $check.is(':checked')
+      }
+
+    for el in $('.nav.config > input')
+      do ->
+        $el = $(el)
+        val = $el.val()
+        chrome.runtime.sendMessage {
+          type: 'get-config'
+          config: val
+        }, (data) ->
+          console.log data, 'PANDA'
+          $el.prop('checked', data is 'true' or false);
 

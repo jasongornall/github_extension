@@ -2,7 +2,7 @@
 (function() {
   chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
     var query;
-    console.log('hit', gh);
+    console.log('hit', request);
     switch (request.type) {
       case 'user-info':
         gh.xhrWithAuth('GET', 'https://api.github.com/user', true, function(error, status, response) {
@@ -58,6 +58,13 @@
             return sendResponse(json);
           }
         });
+        break;
+      case 'set-config':
+        localStorage[request.config] = request.val;
+        sendResponse({});
+        break;
+      case 'get-config':
+        sendResponse(localStorage[request.config]);
     }
     return true;
   });
