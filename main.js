@@ -52,7 +52,7 @@
     url = parseQueryString();
     console.log(localStorage);
     pathname = new URL(window.location.href).pathname;
-    if (/issues$|\/issues\/assigned\/|pulls$|\/pulls\/assigned\//.test(pathname)) {
+    if (/issues$|\/issues\/assigned\/|pulls$|\/pulls\/assigned\/|\/milestones\//.test(pathname)) {
       if (!((_ref = $('#js-issues-search')) != null ? _ref.length : void 0)) {
         return false;
       }

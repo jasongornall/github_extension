@@ -57,7 +57,7 @@ executeContent = ->
   url = parseQueryString()
   console.log localStorage
   pathname = new URL(window.location.href).pathname
-  if /issues$|\/issues\/assigned\/|pulls$|\/pulls\/assigned\//.test pathname
+  if /issues$|\/issues\/assigned\/|pulls$|\/pulls\/assigned\/|\/milestones\//.test pathname
     return false unless !!$('#js-issues-search')?.length
     console.log 'ISSUES PAGE FOUND'
     query = $('#js-issues-search').val()
