@@ -6,12 +6,13 @@
 # https://www.googleapis.com/youtube/v3/videos?part=statistics&id=sTPtBvcYkO8&key=AIzaSyCOgZXFd0wj49anj5THC0bJva_oNjaBilQ
 # grab teacup
 old_url = ''
+new_url = ''
 clearInterval window.urlWatchInterval if window.urlWatchInterval
 window.urlWatchInterval  = setInterval ( ->
-  console.log old_url, window.location.href
-  if (old_url != window.location.href)
+  new_url = window.location.href
+  if (old_url != new_url)
     if executeContent()
-      old_url = window.location.href
+      old_url = new_url
 ), 1000
 
 
@@ -49,8 +50,9 @@ executeContent = ->
   old_entry = null
   url = parseQueryString()
   console.log localStorage
-  search_page = !!$('#js-issues-search')?.length
-  if search_page
+  pathname = new URL(window.location.href).pathname
+  if /issues$|pulls$/.test pathname
+    return false unless !!$('#js-issues-search')?.length
     console.log 'ISSUES PAGE FOUND'
     query = $('#js-issues-search').val()
     repo = $('head > meta[property="og:title"]').attr('content')
@@ -87,10 +89,10 @@ executeContent = ->
             localStorage[item.html_url] = comments
           else
             console.log 'do nothing they are equal'
-  else
+    return true
+  else if /issues\/\d+$|pull\/\d+$/.test pathname
+    return false unless !!$('.timeline-comment-wrapper > .comment')?.length
     # don't do it for new pages
-
-    return unless /issues\/\d+$|pull\/\d+$/.test window.location.href
     console.log 'TICKET FOUND'
     inject_key = =>
       key = window.location.href
@@ -102,7 +104,9 @@ executeContent = ->
     window.addEventListener "beforeunload", (e) ->
       inject_key()
 
-  return true
+    return true
+  else
+    return true
 
 
 
