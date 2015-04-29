@@ -59,11 +59,14 @@
         var $check, val;
         $check = $(e.currentTarget);
         val = $check.val();
-        return chrome.runtime.sendMessage({
+        chrome.runtime.sendMessage({
           type: 'set-config',
           config: val,
           val: $check.is(':checked')
         });
+        if (val === 'disable') {
+          return $check.siblings('input').attr('disabled', $check.is(':checked'));
+        }
       });
       _ref = $('.nav.config > input');
       _results = [];
@@ -78,6 +81,9 @@
             config: val
           }, function(data) {
             console.log(data, 'PANDA');
+            if (val === 'disable') {
+              $el.siblings('input').attr('disabled', data === 'true');
+            }
             return $el.prop('checked', data === 'true' || false);
           });
         })());

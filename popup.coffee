@@ -64,6 +64,8 @@ $(document).ready ->
         config: val
         val: $check.is(':checked')
       }
+      if val is 'disable'
+        $check.siblings('input').attr('disabled', $check.is(':checked'))
 
     for el in $('.nav.config > input')
       do ->
@@ -74,5 +76,8 @@ $(document).ready ->
           config: val
         }, (data) ->
           console.log data, 'PANDA'
+          if val is 'disable'
+            $el.siblings('input').attr('disabled', (data is 'true'))
+
           $el.prop('checked', data is 'true' or false);
 
