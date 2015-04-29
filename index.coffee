@@ -79,8 +79,6 @@ gh = do ->
     return
 
   onUserReposFetched = (error, status, response) ->
-    elem = document.querySelector('#user_repos')
-    elem.value = ''
     if !error and status == 200
       console.log 'Got the following user repos:', response
       user_repos = JSON.parse(response)
@@ -100,21 +98,19 @@ gh = do ->
   interactiveSignIn = (next) ->
     disableButton signin_button
     tokenFetcher.getToken true, (error, access_token) ->
-      if error
-        handleError error
-      else
-        getUserInfo true
-      return
-    return
+      next error, access_token
 
   revokeToken = ->
+    console.log 'REVOKE'
     # We are opening the web page that allows user to revoke their token.
-    window.open 'https://github.com/settings/applications'
     # And then clear the user interface, showing the Sign in button only.
     # If the user revokes the app authorization, they will be prompted to log
     # in again. If the user dismissed the page they were presented with,
     # Sign in button will simply sign them in.
-    user_info_div?.textContent = ''
+    localStorage.removeItem('access_token')
+    tokenFetcher.getToken false, (error, access_token) ->
+      tokenFetcher.removeCachedToken access_token
+
     return
 
   'use strict'
@@ -178,11 +174,14 @@ gh = do ->
 
         setAccessToken = (token) ->
           access_token = token
+          localStorage['access_token'] = token
           console.log 'Setting access_token: ', access_token
           callback null, access_token
           return
 
+        access_token ?= localStorage['access_token']
         if access_token
+          console.log access_token, 'panda'
           callback null, access_token
           return
         options =
@@ -207,6 +206,7 @@ gh = do ->
         return
       removeCachedToken: (token_to_remove) ->
         if access_token == token_to_remove
+          localStorage.removeItem('access_token')
           access_token = null
         return
 

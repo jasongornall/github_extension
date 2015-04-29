@@ -1,10 +1,4 @@
-gh.tokenFetcher.getToken true, (error, access_token) ->
-  signin_button = document.querySelector('#signin');
-  signin_button?.onclick = gh.interactiveSignIn;
-
-  revoke_button = document.querySelector('#revoke');
-  revoke_button?.onclick = gh.revokeToken;
-
+renderUser =  ->
   chrome.runtime.sendMessage {
     type: 'user-info'
     interactive: false
@@ -28,3 +22,31 @@ gh.tokenFetcher.getToken true, (error, access_token) ->
           <span class="error">#{user_info.error}</span>
         </div>
       """
+
+
+$(document).ready ->
+  gh.tokenFetcher.getToken false, (error, access_token) ->
+    console.log access_token, 'PANDA'
+    $('#signin').on 'click', (e)->
+      gh.interactiveSignIn ->
+        $('#signin').hide()
+        $('#revoke').show()
+        renderUser()
+
+    $('#revoke').on 'click', (e)->
+      gh.revokeToken()
+      $('#user').empty()
+      $('#signin').show()
+      $('#revoke').hide()
+
+    if access_token
+      $('#user').empty()
+      $('#signin').hide()
+      $('#revoke').show()
+      renderUser()
+    else
+      $('#user').empty()
+      $('#signin').show()
+      $('#revoke').hide()
+
+

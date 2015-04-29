@@ -6,8 +6,10 @@ chrome.runtime.onMessage.addListener (request, sender, sendResponse) ->
         json = JSON.parse(response)
         if error
           chrome.browserAction.setIcon {path:"github-bad.png"}
+          gh.revokeToken()
           sendResponse {error: error}
         else
+          chrome.browserAction.setIcon {path:"github-good.png"}
           sendResponse json
 
      when 'search-info'
@@ -16,7 +18,9 @@ chrome.runtime.onMessage.addListener (request, sender, sendResponse) ->
         json = JSON.parse(response)
         if error
           chrome.browserAction.setIcon {path:"github-bad.png"}
+          gh.revokeToken()
         else
+          chrome.browserAction.setIcon {path:"github-good.png"}
           sendResponse json
 
      when  'rate-limit'
@@ -24,7 +28,9 @@ chrome.runtime.onMessage.addListener (request, sender, sendResponse) ->
         json = JSON.parse(response)
         if error
           chrome.browserAction.setIcon {path:"github-bad.png"}
+          gh.revokeToken()
         else
+          chrome.browserAction.setIcon {path:"github-good.png"}
           sendResponse json
 
   return true

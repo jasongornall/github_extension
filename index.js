@@ -86,9 +86,7 @@
       xhrWithAuth('GET', repoUrl, false, onUserReposFetched);
     };
     onUserReposFetched = function(error, status, response) {
-      var elem, user_repos;
-      elem = document.querySelector('#user_repos');
-      elem.value = '';
+      var user_repos;
       if (!error && status === 200) {
         console.log('Got the following user repos:', response);
         user_repos = JSON.parse(response);
@@ -106,19 +104,16 @@
     };
     interactiveSignIn = function(next) {
       disableButton(signin_button);
-      tokenFetcher.getToken(true, function(error, access_token) {
-        if (error) {
-          handleError(error);
-        } else {
-          getUserInfo(true);
-        }
+      return tokenFetcher.getToken(true, function(error, access_token) {
+        return next(error, access_token);
       });
     };
     revokeToken = function() {
-      window.open('https://github.com/settings/applications');
-      if (typeof user_info_div !== "undefined" && user_info_div !== null) {
-        user_info_div.textContent = '';
-      }
+      console.log('REVOKE');
+      localStorage.removeItem('access_token');
+      tokenFetcher.getToken(false, function(error, access_token) {
+        return tokenFetcher.removeCachedToken(access_token);
+      });
     };
     'use strict';
     signin_button = void 0;
@@ -180,10 +175,15 @@
           };
           setAccessToken = function(token) {
             access_token = token;
+            localStorage['access_token'] = token;
             console.log('Setting access_token: ', access_token);
             callback(null, access_token);
           };
+          if (access_token == null) {
+            access_token = localStorage['access_token'];
+          }
           if (access_token) {
+            console.log(access_token, 'panda');
             callback(null, access_token);
             return;
           }
@@ -208,6 +208,7 @@
         },
         removeCachedToken: function(token_to_remove) {
           if (access_token === token_to_remove) {
+            localStorage.removeItem('access_token');
             access_token = null;
           }
         }

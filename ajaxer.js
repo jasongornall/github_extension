@@ -12,10 +12,14 @@
             chrome.browserAction.setIcon({
               path: "github-bad.png"
             });
+            gh.revokeToken();
             return sendResponse({
               error: error
             });
           } else {
+            chrome.browserAction.setIcon({
+              path: "github-good.png"
+            });
             return sendResponse(json);
           }
         });
@@ -26,10 +30,14 @@
           var json;
           json = JSON.parse(response);
           if (error) {
-            return chrome.browserAction.setIcon({
+            chrome.browserAction.setIcon({
               path: "github-bad.png"
             });
+            return gh.revokeToken();
           } else {
+            chrome.browserAction.setIcon({
+              path: "github-good.png"
+            });
             return sendResponse(json);
           }
         });
@@ -39,10 +47,14 @@
           var json;
           json = JSON.parse(response);
           if (error) {
-            return chrome.browserAction.setIcon({
+            chrome.browserAction.setIcon({
               path: "github-bad.png"
             });
+            return gh.revokeToken();
           } else {
+            chrome.browserAction.setIcon({
+              path: "github-good.png"
+            });
             return sendResponse(json);
           }
         });

@@ -20,7 +20,7 @@
   }), 1000);
 
   executeContent = function() {
-    var a, coffeescript, div, h1, h3, iframe, img, inject_key, input, link, markNew, markUnread, old_entry, p, page, parseQueryString, pathname, per_page, query, query_str, raw, repo, script, span, teacup, url, _ref, _ref1;
+    var a, coffeescript, div, h1, h3, iframe, img, inject_key, input, link, markNew, markSame, markUnread, old_entry, p, page, parseQueryString, pathname, per_page, query, query_str, raw, repo, script, span, teacup, url, _ref, _ref1;
     console.log('CONTENT EXECUTED');
     parseQueryString = function() {
       var objURL, str;
@@ -33,15 +33,18 @@
     };
     markNew = function(ticket, difference) {
       var $el;
-      console.log('NEW');
       $el = $("li[data-issue-id='" + ticket + "']");
       return $el.find('.issue-title').append("<span class = 'new-comments' style= 'color:purple;'>\n  " + difference + " new comments\n</span>");
     };
     markUnread = function(ticket) {
       var $el;
-      console.log('NEW');
       $el = $("li[data-issue-id='" + ticket + "']");
       return $el.find('.issue-title').append("<span class = 'new-comments' style= 'color:green;'>\n  unread ticket\n</span>");
+    };
+    markSame = function(ticket) {
+      var $el;
+      $el = $("li[data-issue-id='" + ticket + "']");
+      return $el.find('.issue-title').append("<span class = 'new-comments' style= 'color:orange;'>\n  nothing changed\n</span>");
     };
     teacup = window.window.teacup;
     span = teacup.span, div = teacup.div, a = teacup.a, h1 = teacup.h1, h3 = teacup.h3, p = teacup.p, iframe = teacup.iframe, raw = teacup.raw, script = teacup.script, coffeescript = teacup.coffeescript, link = teacup.link, input = teacup.input, img = teacup.img;
@@ -49,7 +52,7 @@
     url = parseQueryString();
     console.log(localStorage);
     pathname = new URL(window.location.href).pathname;
-    if (/issues$|pulls$/.test(pathname)) {
+    if (/issues$|\/issues\/assigned\/|pulls$|\/pulls\/assigned\//.test(pathname)) {
       if (!((_ref = $('#js-issues-search')) != null ? _ref.length : void 0)) {
         return false;
       }
@@ -58,8 +61,9 @@
       repo = $('head > meta[property="og:title"]').attr('content');
       query = query.replace(/\s/g, '+');
       query_str = "" + query;
-      per_page = $('[data-issue-id]').length;
+      per_page = 25;
       page = url.page || '1';
+      console.log(page, 'panda');
       chrome.runtime.sendMessage({
         type: 'search-info',
         query: query_str,
@@ -75,19 +79,21 @@
           item = _ref1[_i];
           $("li[data-issue-id='" + item.number + "'] .new-comments").remove();
           if (!localStorage[item.html_url]) {
-            console.log('new?');
+            console.log('mark_unread', item.number);
             markUnread(item.number);
             continue;
           }
           comments = item.comments + 1;
           num = parseInt(localStorage[item.html_url]);
-          console.log(num, comments, 'panda');
           if (num < comments) {
+            console.log('a');
             _results.push(markNew(item.number, comments - num));
           } else if (num > comments) {
+            console.log('b');
             _results.push(localStorage[item.html_url] = comments);
           } else {
-            _results.push(console.log('do nothing they are equal'));
+            console.log('c');
+            _results.push(markSame(item.number));
           }
         }
         return _results;

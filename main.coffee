@@ -28,19 +28,25 @@ executeContent = ->
     objURL
 
   markNew = (ticket, difference) ->
-    console.log 'NEW'
     $el = $("li[data-issue-id='#{ticket}']")
     $el.find('.issue-title').append """
     <span class = 'new-comments' style= 'color:purple;'>
       #{difference} new comments
     </span>
     """
+
   markUnread = (ticket) ->
-    console.log 'NEW'
     $el = $("li[data-issue-id='#{ticket}']")
     $el.find('.issue-title').append """
     <span class = 'new-comments' style= 'color:green;'>
       unread ticket
+    </span>
+    """
+  markSame = (ticket) ->
+    $el = $("li[data-issue-id='#{ticket}']")
+    $el.find('.issue-title').append """
+    <span class = 'new-comments' style= 'color:orange;'>
+      nothing changed
     </span>
     """
 
@@ -51,7 +57,7 @@ executeContent = ->
   url = parseQueryString()
   console.log localStorage
   pathname = new URL(window.location.href).pathname
-  if /issues$|pulls$/.test pathname
+  if /issues$|\/issues\/assigned\/|pulls$|\/pulls\/assigned\//.test pathname
     return false unless !!$('#js-issues-search')?.length
     console.log 'ISSUES PAGE FOUND'
     query = $('#js-issues-search').val()
@@ -60,9 +66,9 @@ executeContent = ->
     query = query.replace(/\s/g, '+')
 
     query_str = "#{query}"
-    per_page = $('[data-issue-id]').length
+    per_page = 25
     page = url.page or '1'
-
+    console.log page, 'panda'
     chrome.runtime.sendMessage {
       type: 'search-info'
       query: query_str
@@ -74,21 +80,24 @@ executeContent = ->
         for item in data?.items or []
           $("li[data-issue-id='#{item.number}'] .new-comments").remove()
           if not localStorage[item.html_url]
-            console.log 'new?'
+            console.log 'mark_unread', item.number
             markUnread item.number
             continue
 
           comments = item.comments + 1
           num = parseInt localStorage[item.html_url]
-          console.log num, comments, 'panda'
 
           if num < comments
+            console.log 'a'
             markNew(item.number, comments - num)
           else if num > comments
+            console.log 'b'
             # stuff got deleted
             localStorage[item.html_url] = comments
           else
-            console.log 'do nothing they are equal'
+            console.log 'c'
+            markSame item.number
+
     return true
   else if /issues\/\d+$|pull\/\d+$/.test pathname
     return false unless !!$('.timeline-comment-wrapper > .comment')?.length
