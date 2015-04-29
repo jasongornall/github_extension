@@ -9,10 +9,15 @@ old_url = ''
 new_url = ''
 clearInterval window.urlWatchInterval if window.urlWatchInterval
 window.urlWatchInterval  = setInterval ( ->
-  new_url = window.location.href
-  if (old_url != new_url)
-    if executeContent()
-      old_url = new_url
+  chrome.runtime.sendMessage {
+      type: 'get-config'
+      config: 'disable'
+  }, (data) ->
+    return if data is 'true'
+    new_url = window.location.href
+    if (old_url != new_url)
+      if executeContent()
+        old_url = new_url
 ), 1000
 
 

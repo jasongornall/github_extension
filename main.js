@@ -11,12 +11,20 @@
   }
 
   window.urlWatchInterval = setInterval((function() {
-    new_url = window.location.href;
-    if (old_url !== new_url) {
-      if (executeContent()) {
-        return old_url = new_url;
+    return chrome.runtime.sendMessage({
+      type: 'get-config',
+      config: 'disable'
+    }, function(data) {
+      if (data === 'true') {
+        return;
       }
-    }
+      new_url = window.location.href;
+      if (old_url !== new_url) {
+        if (executeContent()) {
+          return old_url = new_url;
+        }
+      }
+    });
   }), 1000);
 
   executeContent = function() {
