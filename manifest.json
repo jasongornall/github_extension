@@ -22,7 +22,7 @@
   },
   "content_scripts": [ {
     "matches": [ "https://github.com/*"],
-    "css": ["animate.css"],
+    "css": ["animate.css", "main.css"],
     "js": [ "jquery.min.js", "teacup.js", "async.min.js", "main.js" ],
     "run_at": "document_end"
   }]

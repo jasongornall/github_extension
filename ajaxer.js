@@ -7,28 +7,7 @@
       case 'user-info':
         gh.xhrWithAuth('GET', 'https://api.github.com/user', true, function(error, status, response) {
           var json;
-          if (error) {
-            chrome.browserAction.setIcon({
-              path: "github-bad.png"
-            });
-            gh.revokeToken();
-            return sendResponse({
-              error: error
-            });
-          } else {
-            json = JSON.parse(response);
-            chrome.browserAction.setIcon({
-              path: "github-good.png"
-            });
-            return sendResponse(json);
-          }
-        });
-        break;
-      case 'search-info':
-        query = "https://api.github.com/search/issues?q=" + request.query + "+repo:" + request.repo + "&page=" + request.page + "&per_page=" + request.per_page;
-        gh.xhrWithAuth('GET', query, false, function(error, status, response) {
-          var json;
-          if (error) {
+          if (error || response.errors) {
             chrome.browserAction.setIcon({
               path: "github-bad.png"
             });
@@ -42,10 +21,29 @@
           }
         });
         break;
+      case 'search-info':
+        query = "https://api.github.com/search/issues?q=" + request.query + "+repo:" + request.repo + "&page=" + request.page + "&per_page=" + request.per_page;
+        gh.xhrWithAuth('GET', query, false, function(error, status, response) {
+          var json;
+          if (error || response.errors) {
+            chrome.browserAction.setIcon({
+              path: "github-bad.png"
+            });
+            return gh.revokeToken();
+          } else {
+            json = JSON.parse(response);
+            console.log(json, '12');
+            chrome.browserAction.setIcon({
+              path: "github-good.png"
+            });
+            return sendResponse(json);
+          }
+        });
+        break;
       case 'rate-limit':
         gh.xhrWithAuth('GET', "https://api.github.com/rate_limit", false, function(error, status, response) {
           var json;
-          if (error) {
+          if (error || response.errors) {
             chrome.browserAction.setIcon({
               path: "github-bad.png"
             });
@@ -65,6 +63,18 @@
         break;
       case 'get-config':
         sendResponse(localStorage[request.config]);
+        break;
+      case 'get-token':
+        gh.tokenFetcher.getToken(false, function(error, access_token) {
+          return sendResponse({
+            error: error,
+            access_token: access_token
+          });
+        });
+        break;
+      case 'revoke-token':
+        gh.revokeToken();
+        sendResponse({});
     }
     return true;
   });

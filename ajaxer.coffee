@@ -3,10 +3,9 @@ chrome.runtime.onMessage.addListener (request, sender, sendResponse) ->
   switch request.type
     when 'user-info'
       gh.xhrWithAuth 'GET', 'https://api.github.com/user', true, (error, status, response) ->
-        if error
+        if error or response.errors
           chrome.browserAction.setIcon {path:"github-bad.png"}
           gh.revokeToken()
-          sendResponse {error: error}
         else
           json = JSON.parse(response)
           chrome.browserAction.setIcon {path:"github-good.png"}
@@ -15,17 +14,18 @@ chrome.runtime.onMessage.addListener (request, sender, sendResponse) ->
      when 'search-info'
       query  = "https://api.github.com/search/issues?q=#{request.query}+repo:#{request.repo}&page=#{request.page}&per_page=#{request.per_page}"
       gh.xhrWithAuth 'GET', query, false, (error, status, response) ->
-        if error
+        if error or response.errors
           chrome.browserAction.setIcon {path:"github-bad.png"}
           gh.revokeToken()
         else
           json = JSON.parse(response)
+          console.log json, '12'
           chrome.browserAction.setIcon {path:"github-good.png"}
           sendResponse json
 
      when  'rate-limit'
       gh.xhrWithAuth 'GET', "https://api.github.com/rate_limit", false, (error, status, response) ->
-        if error
+        if error or response.errors
           chrome.browserAction.setIcon {path:"github-bad.png"}
           gh.revokeToken()
         else
@@ -39,6 +39,17 @@ chrome.runtime.onMessage.addListener (request, sender, sendResponse) ->
 
     when 'get-config'
       sendResponse localStorage[request.config]
+
+    when 'get-token'
+      gh.tokenFetcher.getToken false, (error, access_token) ->
+        sendResponse {
+          error: error
+          access_token: access_token
+        }
+
+    when 'revoke-token'
+      gh.revokeToken()
+      sendResponse {}
 
   return true
 

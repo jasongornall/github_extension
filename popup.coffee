@@ -1,7 +1,7 @@
 renderUser =  ->
   chrome.runtime.sendMessage {
     type: 'user-info'
-    interactive: false
+    interactive: true
   }, (user_info) ->
     if not user_info.error
       $('#signin').hide()
@@ -25,17 +25,22 @@ renderUser =  ->
 
 
 $(document).ready ->
-  gh.tokenFetcher.getToken false, (error, access_token) ->
-    console.log access_token, 'PANDA'
+  chrome.runtime.sendMessage {
+    type: 'get-token'
+  }, (data) ->
+    {error, access_token} = data
     $('#signin').on 'click', (e)->
-      gh.interactiveSignIn ->
+      chrome.runtime.sendMessage {
+        type: 'user-info'
+        interactive: true
+      }, (user_info) ->
         $('#signin').hide()
         $('#revoke').show()
-        chrome.browserAction.setIcon {path:"github-good.png"}
-        renderUser()
 
     $('#revoke').on 'click', (e)->
-      gh.revokeToken()
+      chrome.runtime.sendMessage {
+        type: 'revoke-token'
+      }
       $('#user').empty()
       $('#signin').show()
       $('#revoke').hide()

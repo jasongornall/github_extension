@@ -5,7 +5,7 @@
   renderUser = function() {
     return chrome.runtime.sendMessage({
       type: 'user-info',
-      interactive: false
+      interactive: true
     }, function(user_info) {
       if (!user_info.error) {
         $('#signin').hide();
@@ -20,21 +20,24 @@
   };
 
   $(document).ready(function() {
-    return gh.tokenFetcher.getToken(false, function(error, access_token) {
-      var el, _i, _len, _ref, _results;
-      console.log(access_token, 'PANDA');
+    return chrome.runtime.sendMessage({
+      type: 'get-token'
+    }, function(data) {
+      var access_token, el, error, _i, _len, _ref, _results;
+      error = data.error, access_token = data.access_token;
       $('#signin').on('click', function(e) {
-        return gh.interactiveSignIn(function() {
+        return chrome.runtime.sendMessage({
+          type: 'user-info',
+          interactive: true
+        }, function(user_info) {
           $('#signin').hide();
-          $('#revoke').show();
-          chrome.browserAction.setIcon({
-            path: "github-good.png"
-          });
-          return renderUser();
+          return $('#revoke').show();
         });
       });
       $('#revoke').on('click', function(e) {
-        gh.revokeToken();
+        chrome.runtime.sendMessage({
+          type: 'revoke-token'
+        });
         $('#user').empty();
         $('#signin').show();
         return $('#revoke').hide();

@@ -28,7 +28,7 @@
   }), 1000);
 
   executeContent = function() {
-    var a, coffeescript, div, h1, h3, iframe, img, inject_key, input, link, markNew, markSame, markUnread, old_entry, p, page, parseQueryString, pathname, per_page, query, query_str, raw, repo, script, span, teacup, url, _ref, _ref1;
+    var a, coffeescript, div, h1, h3, iframe, img, inject_key, input, li, link, markNew, markSame, markUnread, ol, old_entry, p, page, parseQueryString, pathname, per_page, query, query_str, raw, repo, script, span, teacup, ul, url, _ref, _ref1;
     console.log('CONTENT EXECUTED');
     parseQueryString = function() {
       var objURL, str;
@@ -49,7 +49,7 @@
           return;
         }
         $el = $("li[data-issue-id='" + ticket + "']");
-        return $el.find('.issue-title').append("<span class = 'new-comments' style= 'color:purple;'>\n  " + difference + " new comments\n</span>");
+        return $el.find('.issue-title').append("<span class = 'new-comments animated fadeIn' style= 'color:purple;'>\n  " + difference + " new comments\n</span>");
       });
     };
     markUnread = function(ticket) {
@@ -62,7 +62,7 @@
           return;
         }
         $el = $("li[data-issue-id='" + ticket + "']");
-        return $el.find('.issue-title').append("<span class = 'new-comments' style= 'color:green;'>\n  unread ticket\n</span>");
+        return $el.find('.issue-title').append("<span class = 'new-comments animated fadeIn' style= 'color:green;'>\n  unread ticket\n</span>");
       });
     };
     markSame = function(ticket) {
@@ -75,11 +75,11 @@
           return;
         }
         $el = $("li[data-issue-id='" + ticket + "']");
-        return $el.find('.issue-title').append("<span class = 'new-comments' style= 'color:orange;'>\n  nothing changed\n</span>");
+        return $el.find('.issue-title').append("<span class = 'new-comments animated fadeIn' style= 'color:orange;'>\n  nothing changed\n</span>");
       });
     };
     teacup = window.window.teacup;
-    span = teacup.span, div = teacup.div, a = teacup.a, h1 = teacup.h1, h3 = teacup.h3, p = teacup.p, iframe = teacup.iframe, raw = teacup.raw, script = teacup.script, coffeescript = teacup.coffeescript, link = teacup.link, input = teacup.input, img = teacup.img;
+    span = teacup.span, div = teacup.div, ul = teacup.ul, ol = teacup.ol, li = teacup.li, a = teacup.a, h1 = teacup.h1, h3 = teacup.h3, p = teacup.p, iframe = teacup.iframe, raw = teacup.raw, script = teacup.script, coffeescript = teacup.coffeescript, link = teacup.link, input = teacup.input, img = teacup.img;
     old_entry = null;
     url = parseQueryString();
     console.log(localStorage);
@@ -96,6 +96,32 @@
       per_page = 25;
       page = url.page || '1';
       console.log(page, 'panda');
+      $('.repository-sidebar .history').remove();
+      $('.repository-sidebar').append(teacup.render(function() {
+        return div('.history animated fadeIn', function() {
+          h1('.header', function() {
+            return 'History';
+          });
+          return ol('.his-items', function() {
+            var arr, loc, title, _i, _len, _ref1, _results;
+            arr = JSON.parse(localStorage['history']).reverse();
+            _ref1 = arr || [];
+            _results = [];
+            for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
+              loc = _ref1[_i];
+              title = loc.title, url = loc.url;
+              _results.push(li('.hist-item', function() {
+                return a({
+                  href: url
+                }, function() {
+                  return title;
+                });
+              }));
+            }
+            return _results;
+          });
+        });
+      }));
       chrome.runtime.sendMessage({
         type: 'search-info',
         query: query_str,
@@ -135,14 +161,34 @@
       if (!((_ref1 = $('.timeline-comment-wrapper > .comment')) != null ? _ref1.length : void 0)) {
         return false;
       }
-      console.log('TICKET FOUND');
+      console.log('TICKET FOUND', new_url);
       inject_key = (function(_this) {
         return function() {
-          var comments, key, _ref2;
-          key = window.location.href;
+          var arr, comments, index, item, key, _i, _len, _ref2, _ref3;
+          key = new_url;
+          if (!/issues\/\d+$|pull\/\d+$/.test(key)) {
+            return;
+          }
           comments = (_ref2 = $('.timeline-comment-wrapper > .comment')) != null ? _ref2.length : void 0;
           console.log(key, comments, 'SET');
-          return localStorage[key] = comments;
+          localStorage[key] = comments;
+          if (!((_ref3 = localStorage['history']) != null ? _ref3.length : void 0)) {
+            localStorage['history'] = JSON.stringify({});
+          }
+          arr = JSON.parse(localStorage['history']);
+          for (index = _i = 0, _len = arr.length; _i < _len; index = ++_i) {
+            item = arr[index];
+            if (item.url === key) {
+              arr.splice(index, 1);
+              break;
+            }
+          }
+          arr.push({
+            title: $('.js-issue-title').text(),
+            url: key
+          });
+          arr = arr.slice(-5);
+          return localStorage['history'] = JSON.stringify(arr);
         };
       })(this);
       inject_key();

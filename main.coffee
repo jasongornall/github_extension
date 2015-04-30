@@ -40,7 +40,7 @@ executeContent = ->
       return unless data is 'true'
       $el = $("li[data-issue-id='#{ticket}']")
       $el.find('.issue-title').append """
-      <span class = 'new-comments' style= 'color:purple;'>
+      <span class = 'new-comments animated fadeIn' style= 'color:purple;'>
         #{difference} new comments
       </span>
       """
@@ -53,7 +53,7 @@ executeContent = ->
       return unless data is 'true'
       $el = $("li[data-issue-id='#{ticket}']")
       $el.find('.issue-title').append """
-      <span class = 'new-comments' style= 'color:green;'>
+      <span class = 'new-comments animated fadeIn' style= 'color:green;'>
         unread ticket
       </span>
       """
@@ -66,14 +66,14 @@ executeContent = ->
       return unless data is 'true'
       $el = $("li[data-issue-id='#{ticket}']")
       $el.find('.issue-title').append """
-      <span class = 'new-comments' style= 'color:orange;'>
+      <span class = 'new-comments animated fadeIn' style= 'color:orange;'>
         nothing changed
       </span>
       """
 
 
   teacup = window.window.teacup
-  {span, div, a, h1, h3, p, iframe, raw, script, coffeescript, link, input, img} = teacup
+  {span, div, ul, ol, li, a, h1, h3, p, iframe, raw, script, coffeescript, link, input, img} = teacup
   old_entry = null
   url = parseQueryString()
   console.log localStorage
@@ -90,6 +90,17 @@ executeContent = ->
     per_page = 25
     page = url.page or '1'
     console.log page, 'panda'
+    $('.repository-sidebar .history').remove()
+    $('.repository-sidebar').append teacup.render ->
+      div '.history animated fadeIn', ->
+        h1 '.header', -> 'History'
+        ol '.his-items', ->
+          arr = JSON.parse(localStorage['history']).reverse()
+          for loc in arr or []
+            {title, url} = loc
+            li '.hist-item', ->
+              a href:url, -> title
+
     chrome.runtime.sendMessage {
       type: 'search-info'
       query: query_str
@@ -123,12 +134,35 @@ executeContent = ->
   else if /issues\/\d+$|pull\/\d+$/.test pathname
     return false unless !!$('.timeline-comment-wrapper > .comment')?.length
     # don't do it for new pages
-    console.log 'TICKET FOUND'
+    console.log 'TICKET FOUND', new_url
     inject_key = =>
-      key = window.location.href
+      key = new_url
+      return unless /issues\/\d+$|pull\/\d+$/.test key
       comments = $('.timeline-comment-wrapper > .comment')?.length
       console.log key, comments, 'SET'
       localStorage[key] = comments
+
+
+
+      # handle history
+      if not localStorage['history']?.length
+        localStorage['history'] = JSON.stringify({})
+
+      # prevent dupes
+      arr = JSON.parse(localStorage['history'])
+      for item, index in arr
+        if item.url is key
+          arr.splice(index,1)
+          break
+
+      arr.push {
+        title: $('.js-issue-title').text()
+        url: key
+      }
+      arr = arr[-5..]
+      localStorage['history'] = JSON.stringify arr
+
+
     inject_key()
 
     window.addEventListener "beforeunload", (e) ->
