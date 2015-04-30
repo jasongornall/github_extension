@@ -39,7 +39,7 @@ executeContent = ->
     }, (data) ->
       return unless data is 'true'
       $el = $("li[data-issue-id='#{ticket}']")
-      $el.find('.issue-title').append """
+      $el.find('.issue-title .issue-meta').append """
       <span class = 'new-comments animated fadeIn' style= 'color:purple;'>
         #{difference} new comments
       </span>
@@ -52,7 +52,7 @@ executeContent = ->
     }, (data) ->
       return unless data is 'true'
       $el = $("li[data-issue-id='#{ticket}']")
-      $el.find('.issue-title').append """
+      $el.find('.issue-title .issue-meta').append """
       <span class = 'new-comments animated fadeIn' style= 'color:green;'>
         unread ticket
       </span>
@@ -65,7 +65,7 @@ executeContent = ->
     }, (data) ->
       return unless data is 'true'
       $el = $("li[data-issue-id='#{ticket}']")
-      $el.find('.issue-title').append """
+      $el.find('.issue-title .issue-meta').append """
       <span class = 'new-comments animated fadeIn' style= 'color:orange;'>
         nothing changed
       </span>

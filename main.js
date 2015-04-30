@@ -49,7 +49,7 @@
           return;
         }
         $el = $("li[data-issue-id='" + ticket + "']");
-        return $el.find('.issue-title').append("<span class = 'new-comments animated fadeIn' style= 'color:purple;'>\n  " + difference + " new comments\n</span>");
+        return $el.find('.issue-title .issue-meta').append("<span class = 'new-comments animated fadeIn' style= 'color:purple;'>\n  " + difference + " new comments\n</span>");
       });
     };
     markUnread = function(ticket) {
@@ -62,7 +62,7 @@
           return;
         }
         $el = $("li[data-issue-id='" + ticket + "']");
-        return $el.find('.issue-title').append("<span class = 'new-comments animated fadeIn' style= 'color:green;'>\n  unread ticket\n</span>");
+        return $el.find('.issue-title .issue-meta').append("<span class = 'new-comments animated fadeIn' style= 'color:green;'>\n  unread ticket\n</span>");
       });
     };
     markSame = function(ticket) {
@@ -75,7 +75,7 @@
           return;
         }
         $el = $("li[data-issue-id='" + ticket + "']");
-        return $el.find('.issue-title').append("<span class = 'new-comments animated fadeIn' style= 'color:orange;'>\n  nothing changed\n</span>");
+        return $el.find('.issue-title .issue-meta').append("<span class = 'new-comments animated fadeIn' style= 'color:orange;'>\n  nothing changed\n</span>");
       });
     };
     teacup = window.window.teacup;
