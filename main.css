@@ -9,14 +9,19 @@
   position: relative;
   top: 0px;
   width: 180px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
   opacity: 0;
 }
 .repository-sidebar .history .hist-item {
   list-style: decimal;
   margin-left: 20px;
+}
+.repository-sidebar .history .hist-item > a {
+  display: inline-block;
+  width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  vertical-align: bottom;
 }
 .new-comments {
   opacity: 0;
