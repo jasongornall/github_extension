@@ -7,6 +7,7 @@
 # grab teacup
 old_url = ''
 new_url = ''
+comment_listener = null
 clearInterval window.urlWatchInterval if window.urlWatchInterval
 window.urlWatchInterval  = setInterval ( ->
   chrome.runtime.sendMessage {
@@ -24,6 +25,7 @@ window.urlWatchInterval  = setInterval ( ->
 
 executeContent = ->
   console.log 'CONTENT EXECUTED'
+  clearInterval comment_listener if comment_listener
   parseQueryString = ->
     str = window.location.search
     objURL = {}
@@ -82,7 +84,7 @@ executeContent = ->
     return false unless !!$('#js-issues-search')?.length
     console.log 'ISSUES PAGE FOUND'
     query = $('#js-issues-search').val()
-    repo = $('head > meta[property="og:title"]').attr('content')
+    repo = $('.dropdown-header > span').attr('title')
 
     query = query.replace(/\s/g, '+')
 
@@ -134,13 +136,12 @@ executeContent = ->
   else if /issues\/\d+$|pull\/\d+$/.test pathname
     return false unless !!$('.timeline-comment-wrapper > .comment')?.length
     # don't do it for new pages
-    console.log 'TICKET FOUND', new_url
+    comment_total = 0
     inject_key = =>
       key = new_url
       return unless /issues\/\d+$|pull\/\d+$/.test key
-      comments = $('.timeline-comment-wrapper > .comment')?.length
-      console.log key, comments, 'SET'
-      localStorage[key] = comments
+      console.log key, comment_total, 'SET'
+      localStorage[key] = comment_total
 
 
 
@@ -163,10 +164,13 @@ executeContent = ->
       localStorage['history'] = JSON.stringify arr
 
 
-    inject_key()
+    comment_listener = setInterval ( ->
+      new_comments = $('.timeline-comment-wrapper > .comment')?.length
+      if new_comments and new_comments != comment_total
+        comment_total = new_comments
+        inject_key()
+    ), 100
 
-    window.addEventListener "beforeunload", (e) ->
-      inject_key()
 
     return true
   else

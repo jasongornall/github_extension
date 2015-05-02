@@ -13,6 +13,7 @@
     "16": "github-128.png"
   },
   "permissions": [
+    "webRequest",
     "identity",
     "https://github.com/",
     "tabs"

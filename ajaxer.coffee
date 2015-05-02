@@ -13,6 +13,7 @@ chrome.runtime.onMessage.addListener (request, sender, sendResponse) ->
 
      when 'search-info'
       query  = "https://api.github.com/search/issues?q=#{request.query}+repo:#{request.repo}&page=#{request.page}&per_page=#{request.per_page}"
+      console.log query, 'panda'
       gh.xhrWithAuth 'GET', query, false, (error, status, response) ->
         if error or response.errors
           chrome.browserAction.setIcon {path:"github-bad.png"}
@@ -52,8 +53,6 @@ chrome.runtime.onMessage.addListener (request, sender, sendResponse) ->
       sendResponse {}
 
   return true
-
-
 
 
 ### neat idea maybe later

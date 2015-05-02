@@ -23,6 +23,7 @@
         break;
       case 'search-info':
         query = "https://api.github.com/search/issues?q=" + request.query + "+repo:" + request.repo + "&page=" + request.page + "&per_page=" + request.per_page;
+        console.log(query, 'panda');
         gh.xhrWithAuth('GET', query, false, function(error, status, response) {
           var json;
           if (error || response.errors) {
