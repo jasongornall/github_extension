@@ -31,7 +31,6 @@
 
   executeContent = function() {
     var a, coffeescript, comment_total, div, h1, h3, iframe, img, inject_key, input, li, link, markNew, markSame, markUnread, ol, old_entry, p, page, parseQueryString, pathname, per_page, query, query_str, raw, repo, script, span, teacup, ul, url, _ref, _ref1;
-    console.log('CONTENT EXECUTED');
     if (comment_listener) {
       clearInterval(comment_listener);
     }
@@ -87,20 +86,17 @@
     span = teacup.span, div = teacup.div, ul = teacup.ul, ol = teacup.ol, li = teacup.li, a = teacup.a, h1 = teacup.h1, h3 = teacup.h3, p = teacup.p, iframe = teacup.iframe, raw = teacup.raw, script = teacup.script, coffeescript = teacup.coffeescript, link = teacup.link, input = teacup.input, img = teacup.img;
     old_entry = null;
     url = parseQueryString();
-    console.log(localStorage);
     pathname = new URL(window.location.href).pathname;
     if (/issues$|\/issues\/assigned\/|pulls$|\/pulls\/assigned\/|\/milestones\//.test(pathname)) {
       if (!((_ref = $('#js-issues-search')) != null ? _ref.length : void 0)) {
         return false;
       }
-      console.log('ISSUES PAGE FOUND');
       query = $('#js-issues-search').val();
       repo = $('.dropdown-header > span').attr('title');
       query = query.replace(/\s/g, '+');
       query_str = "" + query;
       per_page = 25;
       page = url.page || '1';
-      console.log(page, 'panda');
       $('.repository-sidebar .history').remove();
       $('.repository-sidebar').append(teacup.render(function() {
         return div('.history animated fadeIn', function() {
@@ -135,27 +131,22 @@
         per_page: per_page
       }, function(data) {
         var comments, item, num, _i, _len, _ref1, _results;
-        console.log(data != null ? data.items : void 0, 'panda');
         _ref1 = (data != null ? data.items : void 0) || [];
         _results = [];
         for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
           item = _ref1[_i];
           $("li[data-issue-id='" + item.number + "'] .new-comments").remove();
           if (!localStorage[item.html_url]) {
-            console.log('mark_unread', item.number);
             markUnread(item.number);
             continue;
           }
           comments = item.comments + 1;
           num = parseInt(localStorage[item.html_url]);
           if (num < comments) {
-            console.log('a');
             _results.push(markNew(item.number, comments - num));
           } else if (num > comments) {
-            console.log('b');
             _results.push(localStorage[item.html_url] = comments);
           } else {
-            console.log('c');
             _results.push(markSame(item.number));
           }
         }
@@ -174,7 +165,6 @@
           if (!/issues\/\d+$|pull\/\d+$/.test(key)) {
             return;
           }
-          console.log(key, comment_total, 'SET');
           localStorage[key] = comment_total;
           if (!((_ref2 = localStorage['history']) != null ? _ref2.length : void 0)) {
             localStorage['history'] = JSON.stringify({});

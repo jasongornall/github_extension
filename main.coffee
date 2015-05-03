@@ -24,7 +24,6 @@ window.urlWatchInterval  = setInterval ( ->
 
 
 executeContent = ->
-  console.log 'CONTENT EXECUTED'
   clearInterval comment_listener if comment_listener
   parseQueryString = ->
     str = window.location.search
@@ -78,11 +77,9 @@ executeContent = ->
   {span, div, ul, ol, li, a, h1, h3, p, iframe, raw, script, coffeescript, link, input, img} = teacup
   old_entry = null
   url = parseQueryString()
-  console.log localStorage
   pathname = new URL(window.location.href).pathname
   if /issues$|\/issues\/assigned\/|pulls$|\/pulls\/assigned\/|\/milestones\//.test pathname
     return false unless !!$('#js-issues-search')?.length
-    console.log 'ISSUES PAGE FOUND'
     query = $('#js-issues-search').val()
     repo = $('.dropdown-header > span').attr('title')
 
@@ -91,7 +88,6 @@ executeContent = ->
     query_str = "#{query}"
     per_page = 25
     page = url.page or '1'
-    console.log page, 'panda'
     $('.repository-sidebar .history').remove()
     $('.repository-sidebar').append teacup.render ->
       div '.history animated fadeIn', ->
@@ -110,11 +106,9 @@ executeContent = ->
       page: page
       per_page: per_page
       }, (data) ->
-        console.log data?.items, 'panda'
         for item in data?.items or []
           $("li[data-issue-id='#{item.number}'] .new-comments").remove()
           if not localStorage[item.html_url]
-            console.log 'mark_unread', item.number
             markUnread item.number
             continue
 
@@ -122,14 +116,11 @@ executeContent = ->
           num = parseInt localStorage[item.html_url]
 
           if num < comments
-            console.log 'a'
             markNew(item.number, comments - num)
           else if num > comments
-            console.log 'b'
             # stuff got deleted
             localStorage[item.html_url] = comments
           else
-            console.log 'c'
             markSame item.number
 
     return true
@@ -140,7 +131,6 @@ executeContent = ->
     inject_key = =>
       key = new_url
       return unless /issues\/\d+$|pull\/\d+$/.test key
-      console.log key, comment_total, 'SET'
       localStorage[key] = comment_total
 
 
