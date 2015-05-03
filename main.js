@@ -142,7 +142,7 @@
         console.log(user_data, "PASDADBHASHDKHASDHJKS");
         console.log(config_data, 'apple');
         myPieChart = new Chart(ctx).Pie(user_data, {
-          legendTemplate: "<ol class=\ \"<%=name.toLowerCase()%>-legend\">\n    <% for (var i=0; i<segments.length; i++){%>\n        <li style=\ \"color:<%=segments[i].fillColor%>\" >\n          <span>\n            <%if(segments[i].label){%>\n                <%=segments[i].label%>\n                    <%}%>\n          </span>\n        </li>\n        <%}%>\n</ol>",
+          legendTemplate: "<ol class=\ \"<%=name.toLowerCase()%>-legend\">\n    <% for (var i=0; i<segments.length; i++){%>\n        <li class=\ \"<%=segments[i].label%>\" style=\ \"color:<%=segments[i].fillColor%>\" >\n          <span>\n            <%if(segments[i].label){%>\n                <%=segments[i].label%>\n                    <%}%>\n          </span>\n        </li>\n        <%}%>\n</ol>",
           animateRotate: false
         });
         $legend = $('.repository-sidebar .issues-closed .legend');
@@ -153,7 +153,8 @@
           $el = $(e.currentTarget);
           console.log($el, '123');
           assignee = $el.find('span').text().trim();
-          return $('#js-issues-search').val("closed:>" + created + " assignee:" + assignee + " is:issue");
+          $('#js-issues-search').val("closed:>" + created + " assignee:" + assignee + " is:issue");
+          return $('#js-issues-search').closest('form').submit();
         });
         helpers = Chart.helpers;
         helpers.each($legend.find('.pie-legend').children(), function(legendNode, index) {
@@ -170,9 +171,10 @@
           myPieChart.draw();
         });
         return $('.repository-sidebar .issues-closed .canvas').on('click', function(e) {
-          var activePoints;
+          var activePoints, label, _ref2;
           activePoints = myPieChart.getSegmentsAtEvent(e);
-          return console.log(activePoints, 'wakka');
+          label = (_ref2 = activePoints[0]) != null ? _ref2.label : void 0;
+          return $(".repository-sidebar .issues-closed ." + label).click();
         });
       });
     };

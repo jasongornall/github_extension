@@ -122,7 +122,7 @@ executeContent = ->
         legendTemplate: """
           <ol class=\ "<%=name.toLowerCase()%>-legend\">
               <% for (var i=0; i<segments.length; i++){%>
-                  <li style=\ "color:<%=segments[i].fillColor%>\" >
+                  <li class=\ "<%=segments[i].label%>\" style=\ "color:<%=segments[i].fillColor%>\" >
                     <span>
                       <%if(segments[i].label){%>
                           <%=segments[i].label%>
@@ -143,10 +143,12 @@ executeContent = ->
         console.log $el, '123'
         assignee = $el.find('span').text().trim()
         $('#js-issues-search').val("closed:>#{created} assignee:#{assignee} is:issue")
+        $('#js-issues-search').closest('form').submit()
 
       helpers = Chart.helpers;
       helpers.each $legend.find('.pie-legend').children(), (legendNode, index) ->
         helpers.addEvent legendNode, 'mouseover', ->
+
           activeSegment = myPieChart.segments[index]
           activeSegment.save()
           myPieChart.showTooltip [ activeSegment ]
@@ -159,7 +161,9 @@ executeContent = ->
         return
       $('.repository-sidebar .issues-closed .canvas').on 'click', (e) ->
         activePoints = myPieChart.getSegmentsAtEvent(e)
-        console.log activePoints, 'wakka'
+        label = activePoints[0]?.label
+        $(".repository-sidebar .issues-closed .#{label}").click()
+
 
 
   teacup = window.window.teacup
