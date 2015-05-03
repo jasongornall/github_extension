@@ -30,7 +30,7 @@
   }), 1000);
 
   executeContent = function() {
-    var a, coffeescript, comment_total, div, h1, h3, iframe, img, inject_key, input, li, link, markNew, markSame, markUnread, ol, old_entry, p, page, parseQueryString, pathname, per_page, query, query_str, raw, repo, script, span, teacup, ul, url, _ref, _ref1;
+    var a, canvas, coffeescript, comment_total, div, h1, h3, iframe, img, injectPieChart, inject_key, input, li, link, markNew, markSame, markUnread, ol, old_entry, p, page, parseQueryString, pathname, per_page, query, query_str, raw, repo, script, span, teacup, ul, url, _ref, _ref1;
     if (comment_listener) {
       clearInterval(comment_listener);
     }
@@ -82,8 +82,102 @@
         return $el.find('.issue-title .issue-meta').append("<span class = 'new-comments animated fadeIn' style= 'color:orange;'>\n  nothing changed\n</span>");
       });
     };
+    injectPieChart = function() {
+      var created, dayCount, query_issues, t;
+      t = new Date();
+      dayCount = t.getDay();
+      if (dayCount === 0) {
+        dayCount = 7;
+      }
+      t.setDate(t.getDate() - dayCount);
+      t.setHours(0, 0, 0, 0);
+      created = t.toISOString().substr(0, 10);
+      query_issues = "closed:>" + created + " is:issue";
+      console.log(query_issues, "WAKKA WAKKA");
+      return chrome.runtime.sendMessage({
+        type: 'search-info',
+        query: query_issues,
+        repo: repo,
+        page: 1,
+        per_page: 1000
+      }, function(issues_data) {
+        var $legend, config_data, config_index, ctx, helpers, item, legendHolder, myPieChart, user_data, user_index, _i, _len, _ref, _ref1;
+        $('.repository-sidebar').append(teacup.render(function() {
+          return div('.issues-closed animated fadeIn', function() {
+            h1('Issues closed this week by user');
+            canvas('.canvas', {
+              'width': '180',
+              'height': '180'
+            });
+            return div('.legend');
+          });
+        }));
+        ctx = $('.repository-sidebar .issues-closed .canvas').get(0).getContext('2d');
+        user_data = [];
+        config_data = {};
+        config_index = -1;
+        console.log(issues_data, 'BEFORE');
+        _ref = issues_data != null ? issues_data.items : void 0;
+        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+          item = _ref[_i];
+          console.log(item, 'panda');
+          if (!((_ref1 = item.assignee) != null ? _ref1.login : void 0)) {
+            continue;
+          }
+          if (config_data[item.assignee.login] === void 0) {
+            config_index++;
+            config_data[item.assignee.login] = config_index;
+          }
+          user_index = config_data[item.assignee.login];
+          if (user_data[user_index] == null) {
+            user_data[user_index] = {
+              value: 0,
+              color: window.colors[user_index],
+              highlight: window.colors[user_index],
+              label: item.assignee.login
+            };
+          }
+          user_data[user_index].value++;
+        }
+        console.log(user_data, "PASDADBHASHDKHASDHJKS");
+        console.log(config_data, 'apple');
+        myPieChart = new Chart(ctx).Pie(user_data, {
+          legendTemplate: "<ol class=\ \"<%=name.toLowerCase()%>-legend\">\n    <% for (var i=0; i<segments.length; i++){%>\n        <li style=\ \"color:<%=segments[i].fillColor%>\" >\n          <span>\n            <%if(segments[i].label){%>\n                <%=segments[i].label%>\n                    <%}%>\n          </span>\n        </li>\n        <%}%>\n</ol>",
+          animateRotate: false
+        });
+        $legend = $('.repository-sidebar .issues-closed .legend');
+        $legend.html(myPieChart.generateLegend());
+        legendHolder = $legend[0];
+        $legend.find('.pie-legend li').on('click', function(e) {
+          var $el, assignee;
+          $el = $(e.currentTarget);
+          console.log($el, '123');
+          assignee = $el.find('span').text().trim();
+          return $('#js-issues-search').val("closed:>" + created + " assignee:" + assignee + " is:issue");
+        });
+        helpers = Chart.helpers;
+        helpers.each($legend.find('.pie-legend').children(), function(legendNode, index) {
+          helpers.addEvent(legendNode, 'mouseover', function() {
+            var activeSegment;
+            activeSegment = myPieChart.segments[index];
+            activeSegment.save();
+            myPieChart.showTooltip([activeSegment]);
+            activeSegment.restore();
+          });
+        });
+        helpers.addEvent($legend[0], 'mouseleave', function() {
+          console.log('mouseOut');
+          myPieChart.draw();
+        });
+        return $('.repository-sidebar .issues-closed .canvas').on('click', function(e) {
+          var activePoints;
+          activePoints = myPieChart.getSegmentsAtEvent(e);
+          return console.log(activePoints, 'wakka');
+        });
+      });
+    };
     teacup = window.window.teacup;
-    span = teacup.span, div = teacup.div, ul = teacup.ul, ol = teacup.ol, li = teacup.li, a = teacup.a, h1 = teacup.h1, h3 = teacup.h3, p = teacup.p, iframe = teacup.iframe, raw = teacup.raw, script = teacup.script, coffeescript = teacup.coffeescript, link = teacup.link, input = teacup.input, img = teacup.img;
+    span = teacup.span, canvas = teacup.canvas, div = teacup.div, ul = teacup.ul, ol = teacup.ol, li = teacup.li, a = teacup.a, h1 = teacup.h1, h3 = teacup.h3, p = teacup.p, iframe = teacup.iframe, raw = teacup.raw, script = teacup.script, coffeescript = teacup.coffeescript, link = teacup.link, input = teacup.input, img = teacup.img;
     old_entry = null;
     url = parseQueryString();
     pathname = new URL(window.location.href).pathname;
@@ -123,6 +217,10 @@
           });
         });
       }));
+      $('.repository-sidebar .issues-closed').remove();
+      if (/issues$|\/issues\/assigned\/|\/milestones\//.test(pathname)) {
+        injectPieChart();
+      }
       chrome.runtime.sendMessage({
         type: 'search-info',
         query: query_str,

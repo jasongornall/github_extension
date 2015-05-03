@@ -23,6 +23,25 @@
   text-overflow: ellipsis;
   vertical-align: bottom;
 }
+.issues-closed {
+  width: 180px;
+}
+.issues-closed h1 {
+  font-size: 15px;
+  text-align: center;
+}
+.issues-closed .legend {
+  display: inline-block;
+  width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  vertical-align: bottom;
+}
+.issues-closed .legend .pie-legend {
+  margin-left: 20px;
+  list-style: decimal;
+}
 .new-comments {
   opacity: 0;
 }

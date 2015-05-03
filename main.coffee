@@ -11,8 +11,8 @@ comment_listener = null
 clearInterval window.urlWatchInterval if window.urlWatchInterval
 window.urlWatchInterval  = setInterval ( ->
   chrome.runtime.sendMessage {
-      type: 'get-config'
-      config: 'disable'
+    type: 'get-config'
+    config: 'disable'
   }, (data) ->
     return if data is 'true'
     new_url = window.location.href
@@ -72,9 +72,98 @@ executeContent = ->
       </span>
       """
 
+  injectPieChart = ->
+    t = new Date()
+    dayCount = t.getDay()
+    if dayCount is 0
+      dayCount = 7
+    t.setDate t.getDate() - dayCount
+    t.setHours(0,0,0,0)
+    created = t.toISOString().substr(0, 10)
+    query_issues = "closed:>#{created} is:issue"
+    console.log query_issues, "WAKKA WAKKA"
+    chrome.runtime.sendMessage {
+      type: 'search-info'
+      query: query_issues
+      repo:repo
+      page: 1
+      per_page: 1000
+    }, (issues_data) ->
+      $('.repository-sidebar').append teacup.render ->
+        div '.issues-closed animated fadeIn', ->
+          h1 'Issues closed this week by user'
+          canvas '.canvas', 'width': '180', 'height': '180'
+          div '.legend'
+
+      ctx = $('.repository-sidebar .issues-closed .canvas').get(0).getContext('2d')
+
+      user_data = []
+      config_data = {}
+      config_index = -1
+      console.log issues_data, 'BEFORE'
+      for item in issues_data?.items
+        console.log item, 'panda'
+        continue unless item.assignee?.login
+        if config_data[item.assignee.login] is undefined
+          config_index++
+          config_data[item.assignee.login] = config_index
+        user_index = config_data[item.assignee.login]
+
+        user_data[user_index] ?= {
+          value: 0
+          color: window.colors[user_index]
+          highlight: window.colors[user_index]
+          label: item.assignee.login
+        }
+        user_data[user_index].value++
+      console.log user_data, "PASDADBHASHDKHASDHJKS"
+      console.log config_data, 'apple'
+      myPieChart = new Chart(ctx).Pie user_data, {
+        legendTemplate: """
+          <ol class=\ "<%=name.toLowerCase()%>-legend\">
+              <% for (var i=0; i<segments.length; i++){%>
+                  <li style=\ "color:<%=segments[i].fillColor%>\" >
+                    <span>
+                      <%if(segments[i].label){%>
+                          <%=segments[i].label%>
+                              <%}%>
+                    </span>
+                  </li>
+                  <%}%>
+          </ol>
+        """
+        animateRotate : false
+      }
+      $legend = $('.repository-sidebar .issues-closed .legend')
+      $legend.html myPieChart.generateLegend()
+      legendHolder = $legend[0]
+
+      $legend.find('.pie-legend li').on 'click', (e) ->
+        $el = $ e.currentTarget
+        console.log $el, '123'
+        assignee = $el.find('span').text().trim()
+        $('#js-issues-search').val("closed:>#{created} assignee:#{assignee} is:issue")
+
+      helpers = Chart.helpers;
+      helpers.each $legend.find('.pie-legend').children(), (legendNode, index) ->
+        helpers.addEvent legendNode, 'mouseover', ->
+          activeSegment = myPieChart.segments[index]
+          activeSegment.save()
+          myPieChart.showTooltip [ activeSegment ]
+          activeSegment.restore()
+          return
+        return
+      helpers.addEvent $legend[0], 'mouseleave', ->
+        console.log 'mouseOut'
+        myPieChart.draw()
+        return
+      $('.repository-sidebar .issues-closed .canvas').on 'click', (e) ->
+        activePoints = myPieChart.getSegmentsAtEvent(e)
+        console.log activePoints, 'wakka'
+
 
   teacup = window.window.teacup
-  {span, div, ul, ol, li, a, h1, h3, p, iframe, raw, script, coffeescript, link, input, img} = teacup
+  {span, canvas,  div, ul, ol, li, a, h1, h3, p, iframe, raw, script, coffeescript, link, input, img} = teacup
   old_entry = null
   url = parseQueryString()
   pathname = new URL(window.location.href).pathname
@@ -98,6 +187,12 @@ executeContent = ->
             {title, url} = loc
             li '.hist-item', ->
               a href:url, -> title
+
+
+    # canvas test
+    $('.repository-sidebar .issues-closed').remove()
+    if /issues$|\/issues\/assigned\/|\/milestones\//.test pathname
+      injectPieChart()
 
     chrome.runtime.sendMessage {
       type: 'search-info'
