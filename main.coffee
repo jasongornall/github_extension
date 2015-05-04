@@ -109,6 +109,7 @@ executeContent = ->
       per_page: 1000
     }, (issues_data) ->
       return unless issues_data?.items?.length
+      $('.repository-sidebar > .info').remove()
       $('.repository-sidebar').append teacup.render ->
         div '.info', ->
           h1 "information for #{repo}"
@@ -292,8 +293,7 @@ executeContent = ->
   url = parseQueryString()
   pathname = new URL(window.location.href).pathname
 
-  $('.repository-sidebar .issues-closed').remove()
-  $('.repository-sidebar .milestone-breakdown').remove()
+  $('.repository-sidebar .info').remove()
   $('.repository-sidebar .history').remove()
   $(".issue-meta .new-comments").remove()
 

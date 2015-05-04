@@ -1,4 +1,5 @@
 chrome.runtime.onMessage.addListener (request, sender, sendResponse) ->
+  console.log 'a'
   switch request.type
     when 'user-info'
       gh.xhrWithAuth 'GET', 'https://api.github.com/user', true, (error, status, response) ->
@@ -57,10 +58,4 @@ chrome.runtime.onMessage.addListener (request, sender, sendResponse) ->
       sendResponse {}
 
   return true
-
-
-chrome.tabs.onUpdated.addListener (tabId, changeInfo, tab) ->
-  return unless (changeInfo.status == "loading")
-  console.log 'PANDA',changeInfo
-
 

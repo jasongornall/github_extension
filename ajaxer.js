@@ -2,6 +2,7 @@
 (function() {
   chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
     var query;
+    console.log('a');
     switch (request.type) {
       case 'user-info':
         gh.xhrWithAuth('GET', 'https://api.github.com/user', true, function(error, status, response) {
@@ -88,13 +89,6 @@
         sendResponse({});
     }
     return true;
-  });
-
-  chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab) {
-    if (!(changeInfo.status === "loading")) {
-      return;
-    }
-    return console.log('PANDA', changeInfo);
   });
 
 }).call(this);

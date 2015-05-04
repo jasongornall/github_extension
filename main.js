@@ -142,6 +142,7 @@
         if (!(issues_data != null ? (_ref1 = issues_data.items) != null ? _ref1.length : void 0 : void 0)) {
           return;
         }
+        $('.repository-sidebar > .info').remove();
         $('.repository-sidebar').append(teacup.render(function() {
           return div('.info', function() {
             h1("information for " + repo);
@@ -344,8 +345,7 @@
     old_entry = null;
     url = parseQueryString();
     pathname = new URL(window.location.href).pathname;
-    $('.repository-sidebar .issues-closed').remove();
-    $('.repository-sidebar .milestone-breakdown').remove();
+    $('.repository-sidebar .info').remove();
     $('.repository-sidebar .history').remove();
     $(".issue-meta .new-comments").remove();
     if (/issues$|\/issues\/assigned\/|pulls$|\/pulls\/assigned\/|\/milestones\//.test(pathname)) {
