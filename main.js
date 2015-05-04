@@ -30,9 +30,12 @@
   }), 1000);
 
   executeContent = function() {
-    var a, canvas, coffeescript, comment_total, div, h1, h3, iframe, img, injectPieChart, inject_key, input, li, link, markNew, markSame, markUnread, ol, old_entry, p, page, parseQueryString, pathname, per_page, query, query_str, raw, repo, script, span, teacup, ul, url, _ref, _ref1;
+    var a, canvas, coffeescript, comment_total, div, h1, h3, iframe, img, injectPieChart, inject_key, input, li, link, markNew, markSame, markUnread, ol, old_entry, p, page, parseQueryString, pathname, per_page, query, query_str, raw, repo, script, span, teacup, ul, url, _ref, _ref1, _ref2;
     if (comment_listener) {
       clearInterval(comment_listener);
+    }
+    if (!((_ref = localStorage['history']) != null ? _ref.length : void 0)) {
+      localStorage['history'] = JSON.stringify([]);
     }
     parseQueryString = function() {
       var objURL, str;
@@ -93,7 +96,6 @@
       t.setHours(0, 0, 0, 0);
       created = t.toISOString().substr(0, 10);
       query_issues = "closed:>" + created + " is:issue";
-      console.log(query_issues, "WAKKA WAKKA");
       return chrome.runtime.sendMessage({
         type: 'search-info',
         query: query_issues,
@@ -101,10 +103,12 @@
         page: 1,
         per_page: 1000
       }, function(issues_data) {
-        var $legend, config_data, config_index, ctx, helpers, item, legendHolder, myPieChart, user_data, user_index, _i, _len, _ref, _ref1;
+        var $legend, config_data, config_index, ctx, helpers, item, legendHolder, myPieChart, user_data, user_index, _i, _len, _ref1, _ref2;
         $('.repository-sidebar').append(teacup.render(function() {
           return div('.issues-closed animated fadeIn', function() {
-            h1('Issues closed this week by user');
+            h1('.header', function() {
+              return "Issues closed this week by user for " + repo;
+            });
             canvas('.canvas', {
               'width': '180',
               'height': '180'
@@ -116,12 +120,10 @@
         user_data = [];
         config_data = {};
         config_index = -1;
-        console.log(issues_data, 'BEFORE');
-        _ref = issues_data != null ? issues_data.items : void 0;
-        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-          item = _ref[_i];
-          console.log(item, 'panda');
-          if (!((_ref1 = item.assignee) != null ? _ref1.login : void 0)) {
+        _ref1 = issues_data != null ? issues_data.items : void 0;
+        for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
+          item = _ref1[_i];
+          if (!((_ref2 = item.assignee) != null ? _ref2.login : void 0)) {
             continue;
           }
           if (config_data[item.assignee.login] === void 0) {
@@ -139,8 +141,6 @@
           }
           user_data[user_index].value++;
         }
-        console.log(user_data, "PASDADBHASHDKHASDHJKS");
-        console.log(config_data, 'apple');
         myPieChart = new Chart(ctx).Pie(user_data, {
           legendTemplate: "<ol class=\ \"<%=name.toLowerCase()%>-legend\">\n    <% for (var i=0; i<segments.length; i++){%>\n        <li class=\ \"<%=segments[i].label%>\" style=\ \"color:<%=segments[i].fillColor%>\" >\n          <span>\n            <%if(segments[i].label){%>\n                <%=segments[i].label%>\n                    <%}%>\n          </span>\n        </li>\n        <%}%>\n</ol>",
           animateRotate: false
@@ -151,7 +151,6 @@
         $legend.find('.pie-legend li').on('click', function(e) {
           var $el, assignee;
           $el = $(e.currentTarget);
-          console.log($el, '123');
           assignee = $el.find('span').text().trim();
           $('#js-issues-search').val("closed:>" + created + " assignee:" + assignee + " is:issue");
           return $('#js-issues-search').closest('form').submit();
@@ -167,13 +166,12 @@
           });
         });
         helpers.addEvent($legend[0], 'mouseleave', function() {
-          console.log('mouseOut');
           myPieChart.draw();
         });
         return $('.repository-sidebar .issues-closed .canvas').on('click', function(e) {
-          var activePoints, label, _ref2;
+          var activePoints, label, _ref3;
           activePoints = myPieChart.getSegmentsAtEvent(e);
-          label = (_ref2 = activePoints[0]) != null ? _ref2.label : void 0;
+          label = (_ref3 = activePoints[0]) != null ? _ref3.label : void 0;
           return $(".repository-sidebar .issues-closed ." + label).click();
         });
       });
@@ -183,8 +181,10 @@
     old_entry = null;
     url = parseQueryString();
     pathname = new URL(window.location.href).pathname;
+    $('.repository-sidebar .issues-closed').remove();
     if (/issues$|\/issues\/assigned\/|pulls$|\/pulls\/assigned\/|\/milestones\//.test(pathname)) {
-      if (!((_ref = $('#js-issues-search')) != null ? _ref.length : void 0)) {
+      console.log('issues found');
+      if (!((_ref1 = $('#js-issues-search')) != null ? _ref1.length : void 0)) {
         return false;
       }
       query = $('#js-issues-search').val();
@@ -197,15 +197,15 @@
       $('.repository-sidebar').append(teacup.render(function() {
         return div('.history animated fadeIn', function() {
           h1('.header', function() {
-            return 'History';
+            return "Issue History for You";
           });
           return ol('.his-items', function() {
-            var arr, loc, title, _i, _len, _ref1, _results;
+            var arr, loc, title, _i, _len, _ref2, _results;
             arr = JSON.parse(localStorage['history']).reverse();
-            _ref1 = arr || [];
+            _ref2 = arr || [];
             _results = [];
-            for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
-              loc = _ref1[_i];
+            for (_i = 0, _len = _ref2.length; _i < _len; _i++) {
+              loc = _ref2[_i];
               title = loc.title, url = loc.url;
               _results.push(li('.hist-item', function() {
                 return a({
@@ -219,7 +219,6 @@
           });
         });
       }));
-      $('.repository-sidebar .issues-closed').remove();
       if (/issues$|\/issues\/assigned\/|\/milestones\//.test(pathname)) {
         injectPieChart();
       }
@@ -230,11 +229,11 @@
         page: page,
         per_page: per_page
       }, function(data) {
-        var comments, item, num, _i, _len, _ref1, _results;
-        _ref1 = (data != null ? data.items : void 0) || [];
+        var comments, item, num, _i, _len, _ref2, _results;
+        _ref2 = (data != null ? data.items : void 0) || [];
         _results = [];
-        for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
-          item = _ref1[_i];
+        for (_i = 0, _len = _ref2.length; _i < _len; _i++) {
+          item = _ref2[_i];
           $("li[data-issue-id='" + item.number + "'] .new-comments").remove();
           if (!localStorage[item.html_url]) {
             markUnread(item.number);
@@ -254,21 +253,19 @@
       });
       return true;
     } else if (/issues\/\d+$|pull\/\d+$/.test(pathname)) {
-      if (!((_ref1 = $('.timeline-comment-wrapper > .comment')) != null ? _ref1.length : void 0)) {
+      if (!((_ref2 = $('.timeline-comment-wrapper > .comment')) != null ? _ref2.length : void 0)) {
         return false;
       }
+      console.log('issue found');
       comment_total = 0;
       inject_key = (function(_this) {
         return function() {
-          var arr, index, item, key, _i, _len, _ref2;
+          var arr, index, item, key, _i, _len;
           key = new_url;
           if (!/issues\/\d+$|pull\/\d+$/.test(key)) {
             return;
           }
           localStorage[key] = comment_total;
-          if (!((_ref2 = localStorage['history']) != null ? _ref2.length : void 0)) {
-            localStorage['history'] = JSON.stringify({});
-          }
           arr = JSON.parse(localStorage['history']);
           for (index = _i = 0, _len = arr.length; _i < _len; index = ++_i) {
             item = arr[index];
@@ -286,8 +283,8 @@
         };
       })(this);
       comment_listener = setInterval((function() {
-        var new_comments, _ref2;
-        new_comments = (_ref2 = $('.timeline-comment-wrapper > .comment')) != null ? _ref2.length : void 0;
+        var new_comments, _ref3;
+        new_comments = (_ref3 = $('.timeline-comment-wrapper > .comment')) != null ? _ref3.length : void 0;
         if (new_comments && new_comments !== comment_total) {
           comment_total = new_comments;
           return inject_key();

@@ -11,6 +11,12 @@
   width: 180px;
   opacity: 0;
 }
+.repository-sidebar h1 {
+  width: auto;
+  min-width: inherit;
+  font-size: 15px;
+  text-align: center;
+}
 .repository-sidebar .history .hist-item {
   list-style: decimal;
   margin-left: 20px;
@@ -25,10 +31,6 @@
 }
 .issues-closed {
   width: 180px;
-}
-.issues-closed h1 {
-  font-size: 15px;
-  text-align: center;
 }
 .issues-closed .legend {
   display: inline-block;

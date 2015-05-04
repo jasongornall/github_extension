@@ -25,6 +25,9 @@ window.urlWatchInterval  = setInterval ( ->
 
 executeContent = ->
   clearInterval comment_listener if comment_listener
+  # handle history
+  if not localStorage['history']?.length
+    localStorage['history'] = JSON.stringify([])
   parseQueryString = ->
     str = window.location.search
     objURL = {}
@@ -81,7 +84,6 @@ executeContent = ->
     t.setHours(0,0,0,0)
     created = t.toISOString().substr(0, 10)
     query_issues = "closed:>#{created} is:issue"
-    console.log query_issues, "WAKKA WAKKA"
     chrome.runtime.sendMessage {
       type: 'search-info'
       query: query_issues
@@ -91,7 +93,7 @@ executeContent = ->
     }, (issues_data) ->
       $('.repository-sidebar').append teacup.render ->
         div '.issues-closed animated fadeIn', ->
-          h1 'Issues closed this week by user'
+          h1 '.header', -> "Issues closed this week by user for #{repo}"
           canvas '.canvas', 'width': '180', 'height': '180'
           div '.legend'
 
@@ -100,9 +102,7 @@ executeContent = ->
       user_data = []
       config_data = {}
       config_index = -1
-      console.log issues_data, 'BEFORE'
       for item in issues_data?.items
-        console.log item, 'panda'
         continue unless item.assignee?.login
         if config_data[item.assignee.login] is undefined
           config_index++
@@ -116,8 +116,6 @@ executeContent = ->
           label: item.assignee.login
         }
         user_data[user_index].value++
-      console.log user_data, "PASDADBHASHDKHASDHJKS"
-      console.log config_data, 'apple'
       myPieChart = new Chart(ctx).Pie user_data, {
         legendTemplate: """
           <ol class=\ "<%=name.toLowerCase()%>-legend\">
@@ -140,7 +138,6 @@ executeContent = ->
 
       $legend.find('.pie-legend li').on 'click', (e) ->
         $el = $ e.currentTarget
-        console.log $el, '123'
         assignee = $el.find('span').text().trim()
         $('#js-issues-search').val("closed:>#{created} assignee:#{assignee} is:issue")
         $('#js-issues-search').closest('form').submit()
@@ -156,7 +153,6 @@ executeContent = ->
           return
         return
       helpers.addEvent $legend[0], 'mouseleave', ->
-        console.log 'mouseOut'
         myPieChart.draw()
         return
       $('.repository-sidebar .issues-closed .canvas').on 'click', (e) ->
@@ -171,7 +167,9 @@ executeContent = ->
   old_entry = null
   url = parseQueryString()
   pathname = new URL(window.location.href).pathname
+  $('.repository-sidebar .issues-closed').remove()
   if /issues$|\/issues\/assigned\/|pulls$|\/pulls\/assigned\/|\/milestones\//.test pathname
+    console.log 'issues found'
     return false unless !!$('#js-issues-search')?.length
     query = $('#js-issues-search').val()
     repo = $('.dropdown-header > span').attr('title')
@@ -184,7 +182,7 @@ executeContent = ->
     $('.repository-sidebar .history').remove()
     $('.repository-sidebar').append teacup.render ->
       div '.history animated fadeIn', ->
-        h1 '.header', -> 'History'
+        h1 '.header', -> "Issue History for You"
         ol '.his-items', ->
           arr = JSON.parse(localStorage['history']).reverse()
           for loc in arr or []
@@ -194,7 +192,6 @@ executeContent = ->
 
 
     # canvas test
-    $('.repository-sidebar .issues-closed').remove()
     if /issues$|\/issues\/assigned\/|\/milestones\//.test pathname
       injectPieChart()
 
@@ -225,18 +222,13 @@ executeContent = ->
     return true
   else if /issues\/\d+$|pull\/\d+$/.test pathname
     return false unless !!$('.timeline-comment-wrapper > .comment')?.length
+    console.log 'issue found'
     # don't do it for new pages
     comment_total = 0
     inject_key = =>
       key = new_url
       return unless /issues\/\d+$|pull\/\d+$/.test key
       localStorage[key] = comment_total
-
-
-
-      # handle history
-      if not localStorage['history']?.length
-        localStorage['history'] = JSON.stringify({})
 
       # prevent dupes
       arr = JSON.parse(localStorage['history'])
