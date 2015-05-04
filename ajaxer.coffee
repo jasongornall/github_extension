@@ -38,6 +38,12 @@ chrome.runtime.onMessage.addListener (request, sender, sendResponse) ->
       sendResponse {}
 
     when 'get-config'
+      if localStorage['initialized'] != 'true'
+        localStorage['new'] = 'false'
+        localStorage['nochange'] = 'false'
+        localStorage['unread'] = 'true'
+        localStorage['initialized'] = 'true'
+
       sendResponse localStorage[request.config]
 
     when 'get-token'
@@ -52,7 +58,6 @@ chrome.runtime.onMessage.addListener (request, sender, sendResponse) ->
       sendResponse {}
 
   return true
-
 
 ### neat idea maybe later
 chrome.tabs.onUpdated.addListener (tabId, changeInfo, tab) ->

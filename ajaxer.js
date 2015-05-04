@@ -68,6 +68,12 @@
         sendResponse({});
         break;
       case 'get-config':
+        if (localStorage['initialized'] !== 'true') {
+          localStorage['new'] = 'false';
+          localStorage['nochange'] = 'false';
+          localStorage['unread'] = 'true';
+          localStorage['initialized'] = 'true';
+        }
         sendResponse(localStorage[request.config]);
         break;
       case 'get-token':

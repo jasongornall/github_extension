@@ -28,6 +28,7 @@ executeContent = ->
   # handle history
   if not localStorage['history']?.length
     localStorage['history'] = JSON.stringify([])
+
   parseQueryString = ->
     str = window.location.search
     objURL = {}
@@ -74,91 +75,115 @@ executeContent = ->
         nothing changed
       </span>
       """
+  injectHistory = ->
+    chrome.runtime.sendMessage {
+      type: 'get-config'
+      config: 'user_history'
+    }, (data) ->
+      return unless data is 'true'
+      $('.repository-sidebar').append teacup.render ->
+        div '.history animated fadeIn', ->
+          h1 '.header', -> "Issue History for You"
+          ol '.his-items', ->
+            arr = JSON.parse(localStorage['history']).reverse()
+            for loc in arr or []
+              {title, url} = loc
+              li '.hist-item', ->
+                a href:url, -> title
 
   injectPieChart = ->
-    t = new Date()
-    dayCount = t.getDay()
-    if dayCount is 0
-      dayCount = 7
-    t.setDate t.getDate() - dayCount
-    t.setHours(0,0,0,0)
-    created = t.toISOString().substr(0, 10)
-    query_issues = "closed:>#{created} is:issue"
     chrome.runtime.sendMessage {
-      type: 'search-info'
-      query: query_issues
-      repo:repo
-      page: 1
-      per_page: 1000
-    }, (issues_data) ->
-      $('.repository-sidebar').append teacup.render ->
-        div '.issues-closed animated fadeIn', ->
-          h1 '.header', -> "Issues closed this week by user for #{repo}"
-          canvas '.canvas', 'width': '180', 'height': '180'
-          div '.legend'
+      type: 'get-config'
+      config: 'user_breakdown'
+    }, (data) ->
+      return unless data is 'true'
+      t = new Date()
+      dayCount = t.getDay()
+      if dayCount is 0
+        dayCount = 7
+      t.setDate t.getDate() - dayCount
+      t.setHours(0,0,0,0)
+      created = t.toISOString().substr(0, 10)
+      query_issues = "closed:>#{created} is:issue"
+      chrome.runtime.sendMessage {
+        type: 'search-info'
+        query: query_issues
+        repo:repo
+        page: 1
+        per_page: 1000
+      }, (issues_data) ->
+        $('.repository-sidebar').append teacup.render ->
+          div '.issues-closed animated fadeIn', ->
+            h1 '.header', -> "Issues closed this week by user for #{repo}"
+            canvas '.canvas', 'width': '180', 'height': '180'
+            div '.legend'
 
-      ctx = $('.repository-sidebar .issues-closed .canvas').get(0).getContext('2d')
+        ctx = $('.repository-sidebar .issues-closed .canvas').get(0).getContext('2d')
 
-      user_data = []
-      config_data = {}
-      config_index = -1
-      for item in issues_data?.items
-        continue unless item.assignee?.login
-        if config_data[item.assignee.login] is undefined
-          config_index++
-          config_data[item.assignee.login] = config_index
-        user_index = config_data[item.assignee.login]
+        user_data = []
+        config_data = {}
+        config_index = -1
+        for item in issues_data?.items
+          continue unless item.assignee?.login
+          if config_data[item.assignee.login] is undefined
+            config_index++
+            config_data[item.assignee.login] = config_index
+          user_index = config_data[item.assignee.login]
 
-        user_data[user_index] ?= {
-          value: 0
-          color: window.colors[user_index]
-          highlight: window.colors[user_index]
-          label: item.assignee.login
+          user_data[user_index] ?= {
+            value: 0
+            color: window.colors[user_index]
+            highlight: window.colors[user_index]
+            label: item.assignee.login
+          }
+          user_data[user_index].value++
+
+        user_data.sort (a, b) ->
+          return b.value - a.value
+
+        myPieChart = new Chart(ctx).Pie user_data, {
+          legendTemplate: """
+            <ol class=\ "<%=name.toLowerCase()%>-legend\">
+                <% for (var i=0; i<segments.length; i++){%>
+                    <li class=\ "<%=segments[i].label%>\" style=\ "color:<%=segments[i].fillColor%>\" >
+                      <span>
+                        <%if(segments[i].label){%>
+                            <%=segments[i].label%>
+                                <%}%>
+                      </span>
+                    </li>
+                    <%}%>
+            </ol>
+          """
+          animateRotate : false
         }
-        user_data[user_index].value++
-      myPieChart = new Chart(ctx).Pie user_data, {
-        legendTemplate: """
-          <ol class=\ "<%=name.toLowerCase()%>-legend\">
-              <% for (var i=0; i<segments.length; i++){%>
-                  <li class=\ "<%=segments[i].label%>\" style=\ "color:<%=segments[i].fillColor%>\" >
-                    <span>
-                      <%if(segments[i].label){%>
-                          <%=segments[i].label%>
-                              <%}%>
-                    </span>
-                  </li>
-                  <%}%>
-          </ol>
-        """
-        animateRotate : false
-      }
-      $legend = $('.repository-sidebar .issues-closed .legend')
-      $legend.html myPieChart.generateLegend()
-      legendHolder = $legend[0]
+        $legend = $('.repository-sidebar .issues-closed .legend')
+        $legend.html myPieChart.generateLegend()
+        legendHolder = $legend[0]
 
-      $legend.find('.pie-legend li').on 'click', (e) ->
-        $el = $ e.currentTarget
-        assignee = $el.find('span').text().trim()
-        $('#js-issues-search').val("closed:>#{created} assignee:#{assignee} is:issue")
-        $('#js-issues-search').closest('form').submit()
+        $legend.find('.pie-legend li').on 'click', (e) ->
+          $el = $ e.currentTarget
+          assignee = $el.find('span').text().trim()
+          $('#js-issues-search').val("closed:>#{created} assignee:#{assignee} is:issue")
+          $('#js-issues-search').closest('form').submit()
 
-      helpers = Chart.helpers;
-      helpers.each $legend.find('.pie-legend').children(), (legendNode, index) ->
-        helpers.addEvent legendNode, 'mouseover', ->
+        helpers = Chart.helpers;
+        helpers.each $legend.find('.pie-legend').children(), (legendNode, index) ->
+          helpers.addEvent legendNode, 'mouseover', ->
 
-          activeSegment = myPieChart.segments[index]
-          activeSegment.save()
-          myPieChart.showTooltip [ activeSegment ]
-          activeSegment.restore()
+            activeSegment = myPieChart.segments[index]
+            activeSegment.save()
+            myPieChart.showTooltip [ activeSegment ]
+            activeSegment.restore()
+            return
           return
-        return
-      helpers.addEvent $legend[0], 'mouseleave', ->
-        myPieChart.draw()
-        return
-      $('.repository-sidebar .issues-closed .canvas').on 'click', (e) ->
-        activePoints = myPieChart.getSegmentsAtEvent(e)
-        label = activePoints[0]?.label
-        $(".repository-sidebar .issues-closed .#{label}").click()
+        helpers.addEvent $legend[0], 'mouseleave', ->
+          myPieChart.draw()
+          return
+        $('.repository-sidebar .issues-closed .canvas').on 'click', (e) ->
+          activePoints = myPieChart.getSegmentsAtEvent(e)
+          label = activePoints[0]?.label
+          $(".repository-sidebar .issues-closed .#{label}").click()
 
 
 
@@ -167,7 +192,10 @@ executeContent = ->
   old_entry = null
   url = parseQueryString()
   pathname = new URL(window.location.href).pathname
+
   $('.repository-sidebar .issues-closed').remove()
+  $('.repository-sidebar .history').remove()
+
   if /issues$|\/issues\/assigned\/|pulls$|\/pulls\/assigned\/|\/milestones\//.test pathname
     console.log 'issues found'
     return false unless !!$('#js-issues-search')?.length
@@ -179,18 +207,8 @@ executeContent = ->
     query_str = "#{query}"
     per_page = 25
     page = url.page or '1'
-    $('.repository-sidebar .history').remove()
-    $('.repository-sidebar').append teacup.render ->
-      div '.history animated fadeIn', ->
-        h1 '.header', -> "Issue History for You"
-        ol '.his-items', ->
-          arr = JSON.parse(localStorage['history']).reverse()
-          for loc in arr or []
-            {title, url} = loc
-            li '.hist-item', ->
-              a href:url, -> title
 
-
+    injectHistory()
     # canvas test
     if /issues$|\/issues\/assigned\/|\/milestones\//.test pathname
       injectPieChart()

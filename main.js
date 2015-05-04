@@ -30,7 +30,7 @@
   }), 1000);
 
   executeContent = function() {
-    var a, canvas, coffeescript, comment_total, div, h1, h3, iframe, img, injectPieChart, inject_key, input, li, link, markNew, markSame, markUnread, ol, old_entry, p, page, parseQueryString, pathname, per_page, query, query_str, raw, repo, script, span, teacup, ul, url, _ref, _ref1, _ref2;
+    var a, canvas, coffeescript, comment_total, div, h1, h3, iframe, img, injectHistory, injectPieChart, inject_key, input, li, link, markNew, markSame, markUnread, ol, old_entry, p, page, parseQueryString, pathname, per_page, query, query_str, raw, repo, script, span, teacup, ul, url, _ref, _ref1, _ref2;
     if (comment_listener) {
       clearInterval(comment_listener);
     }
@@ -85,94 +85,140 @@
         return $el.find('.issue-title .issue-meta').append("<span class = 'new-comments animated fadeIn' style= 'color:orange;'>\n  nothing changed\n</span>");
       });
     };
-    injectPieChart = function() {
-      var created, dayCount, query_issues, t;
-      t = new Date();
-      dayCount = t.getDay();
-      if (dayCount === 0) {
-        dayCount = 7;
-      }
-      t.setDate(t.getDate() - dayCount);
-      t.setHours(0, 0, 0, 0);
-      created = t.toISOString().substr(0, 10);
-      query_issues = "closed:>" + created + " is:issue";
+    injectHistory = function() {
       return chrome.runtime.sendMessage({
-        type: 'search-info',
-        query: query_issues,
-        repo: repo,
-        page: 1,
-        per_page: 1000
-      }, function(issues_data) {
-        var $legend, config_data, config_index, ctx, helpers, item, legendHolder, myPieChart, user_data, user_index, _i, _len, _ref1, _ref2;
-        $('.repository-sidebar').append(teacup.render(function() {
-          return div('.issues-closed animated fadeIn', function() {
+        type: 'get-config',
+        config: 'user_history'
+      }, function(data) {
+        if (data !== 'true') {
+          return;
+        }
+        return $('.repository-sidebar').append(teacup.render(function() {
+          return div('.history animated fadeIn', function() {
             h1('.header', function() {
-              return "Issues closed this week by user for " + repo;
+              return "Issue History for You";
             });
-            canvas('.canvas', {
-              'width': '180',
-              'height': '180'
+            return ol('.his-items', function() {
+              var arr, loc, title, url, _i, _len, _ref1, _results;
+              arr = JSON.parse(localStorage['history']).reverse();
+              _ref1 = arr || [];
+              _results = [];
+              for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
+                loc = _ref1[_i];
+                title = loc.title, url = loc.url;
+                _results.push(li('.hist-item', function() {
+                  return a({
+                    href: url
+                  }, function() {
+                    return title;
+                  });
+                }));
+              }
+              return _results;
             });
-            return div('.legend');
           });
         }));
-        ctx = $('.repository-sidebar .issues-closed .canvas').get(0).getContext('2d');
-        user_data = [];
-        config_data = {};
-        config_index = -1;
-        _ref1 = issues_data != null ? issues_data.items : void 0;
-        for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
-          item = _ref1[_i];
-          if (!((_ref2 = item.assignee) != null ? _ref2.login : void 0)) {
-            continue;
-          }
-          if (config_data[item.assignee.login] === void 0) {
-            config_index++;
-            config_data[item.assignee.login] = config_index;
-          }
-          user_index = config_data[item.assignee.login];
-          if (user_data[user_index] == null) {
-            user_data[user_index] = {
-              value: 0,
-              color: window.colors[user_index],
-              highlight: window.colors[user_index],
-              label: item.assignee.login
-            };
-          }
-          user_data[user_index].value++;
+      });
+    };
+    injectPieChart = function() {
+      return chrome.runtime.sendMessage({
+        type: 'get-config',
+        config: 'user_breakdown'
+      }, function(data) {
+        var created, dayCount, query_issues, t;
+        if (data !== 'true') {
+          return;
         }
-        myPieChart = new Chart(ctx).Pie(user_data, {
-          legendTemplate: "<ol class=\ \"<%=name.toLowerCase()%>-legend\">\n    <% for (var i=0; i<segments.length; i++){%>\n        <li class=\ \"<%=segments[i].label%>\" style=\ \"color:<%=segments[i].fillColor%>\" >\n          <span>\n            <%if(segments[i].label){%>\n                <%=segments[i].label%>\n                    <%}%>\n          </span>\n        </li>\n        <%}%>\n</ol>",
-          animateRotate: false
-        });
-        $legend = $('.repository-sidebar .issues-closed .legend');
-        $legend.html(myPieChart.generateLegend());
-        legendHolder = $legend[0];
-        $legend.find('.pie-legend li').on('click', function(e) {
-          var $el, assignee;
-          $el = $(e.currentTarget);
-          assignee = $el.find('span').text().trim();
-          $('#js-issues-search').val("closed:>" + created + " assignee:" + assignee + " is:issue");
-          return $('#js-issues-search').closest('form').submit();
-        });
-        helpers = Chart.helpers;
-        helpers.each($legend.find('.pie-legend').children(), function(legendNode, index) {
-          helpers.addEvent(legendNode, 'mouseover', function() {
-            var activeSegment;
-            activeSegment = myPieChart.segments[index];
-            activeSegment.save();
-            myPieChart.showTooltip([activeSegment]);
-            activeSegment.restore();
+        t = new Date();
+        dayCount = t.getDay();
+        if (dayCount === 0) {
+          dayCount = 7;
+        }
+        t.setDate(t.getDate() - dayCount);
+        t.setHours(0, 0, 0, 0);
+        created = t.toISOString().substr(0, 10);
+        query_issues = "closed:>" + created + " is:issue";
+        return chrome.runtime.sendMessage({
+          type: 'search-info',
+          query: query_issues,
+          repo: repo,
+          page: 1,
+          per_page: 1000
+        }, function(issues_data) {
+          var $legend, config_data, config_index, ctx, helpers, item, legendHolder, myPieChart, user_data, user_index, _i, _len, _ref1, _ref2;
+          $('.repository-sidebar').append(teacup.render(function() {
+            return div('.issues-closed animated fadeIn', function() {
+              h1('.header', function() {
+                return "Issues closed this week by user for " + repo;
+              });
+              canvas('.canvas', {
+                'width': '180',
+                'height': '180'
+              });
+              return div('.legend');
+            });
+          }));
+          ctx = $('.repository-sidebar .issues-closed .canvas').get(0).getContext('2d');
+          user_data = [];
+          config_data = {};
+          config_index = -1;
+          _ref1 = issues_data != null ? issues_data.items : void 0;
+          for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
+            item = _ref1[_i];
+            if (!((_ref2 = item.assignee) != null ? _ref2.login : void 0)) {
+              continue;
+            }
+            if (config_data[item.assignee.login] === void 0) {
+              config_index++;
+              config_data[item.assignee.login] = config_index;
+            }
+            user_index = config_data[item.assignee.login];
+            if (user_data[user_index] == null) {
+              user_data[user_index] = {
+                value: 0,
+                color: window.colors[user_index],
+                highlight: window.colors[user_index],
+                label: item.assignee.login
+              };
+            }
+            user_data[user_index].value++;
+          }
+          user_data.sort(function(a, b) {
+            return b.value - a.value;
           });
-        });
-        helpers.addEvent($legend[0], 'mouseleave', function() {
-          myPieChart.draw();
-        });
-        return $('.repository-sidebar .issues-closed .canvas').on('click', function(e) {
-          var activePoints, label, _ref3;
-          activePoints = myPieChart.getSegmentsAtEvent(e);
-          label = (_ref3 = activePoints[0]) != null ? _ref3.label : void 0;
-          return $(".repository-sidebar .issues-closed ." + label).click();
+          myPieChart = new Chart(ctx).Pie(user_data, {
+            legendTemplate: "<ol class=\ \"<%=name.toLowerCase()%>-legend\">\n    <% for (var i=0; i<segments.length; i++){%>\n        <li class=\ \"<%=segments[i].label%>\" style=\ \"color:<%=segments[i].fillColor%>\" >\n          <span>\n            <%if(segments[i].label){%>\n                <%=segments[i].label%>\n                    <%}%>\n          </span>\n        </li>\n        <%}%>\n</ol>",
+            animateRotate: false
+          });
+          $legend = $('.repository-sidebar .issues-closed .legend');
+          $legend.html(myPieChart.generateLegend());
+          legendHolder = $legend[0];
+          $legend.find('.pie-legend li').on('click', function(e) {
+            var $el, assignee;
+            $el = $(e.currentTarget);
+            assignee = $el.find('span').text().trim();
+            $('#js-issues-search').val("closed:>" + created + " assignee:" + assignee + " is:issue");
+            return $('#js-issues-search').closest('form').submit();
+          });
+          helpers = Chart.helpers;
+          helpers.each($legend.find('.pie-legend').children(), function(legendNode, index) {
+            helpers.addEvent(legendNode, 'mouseover', function() {
+              var activeSegment;
+              activeSegment = myPieChart.segments[index];
+              activeSegment.save();
+              myPieChart.showTooltip([activeSegment]);
+              activeSegment.restore();
+            });
+          });
+          helpers.addEvent($legend[0], 'mouseleave', function() {
+            myPieChart.draw();
+          });
+          return $('.repository-sidebar .issues-closed .canvas').on('click', function(e) {
+            var activePoints, label, _ref3;
+            activePoints = myPieChart.getSegmentsAtEvent(e);
+            label = (_ref3 = activePoints[0]) != null ? _ref3.label : void 0;
+            return $(".repository-sidebar .issues-closed ." + label).click();
+          });
         });
       });
     };
@@ -182,6 +228,7 @@
     url = parseQueryString();
     pathname = new URL(window.location.href).pathname;
     $('.repository-sidebar .issues-closed').remove();
+    $('.repository-sidebar .history').remove();
     if (/issues$|\/issues\/assigned\/|pulls$|\/pulls\/assigned\/|\/milestones\//.test(pathname)) {
       console.log('issues found');
       if (!((_ref1 = $('#js-issues-search')) != null ? _ref1.length : void 0)) {
@@ -193,32 +240,7 @@
       query_str = "" + query;
       per_page = 25;
       page = url.page || '1';
-      $('.repository-sidebar .history').remove();
-      $('.repository-sidebar').append(teacup.render(function() {
-        return div('.history animated fadeIn', function() {
-          h1('.header', function() {
-            return "Issue History for You";
-          });
-          return ol('.his-items', function() {
-            var arr, loc, title, _i, _len, _ref2, _results;
-            arr = JSON.parse(localStorage['history']).reverse();
-            _ref2 = arr || [];
-            _results = [];
-            for (_i = 0, _len = _ref2.length; _i < _len; _i++) {
-              loc = _ref2[_i];
-              title = loc.title, url = loc.url;
-              _results.push(li('.hist-item', function() {
-                return a({
-                  href: url
-                }, function() {
-                  return title;
-                });
-              }));
-            }
-            return _results;
-          });
-        });
-      }));
+      injectHistory();
       if (/issues$|\/issues\/assigned\/|\/milestones\//.test(pathname)) {
         injectPieChart();
       }
