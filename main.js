@@ -230,7 +230,6 @@
     $('.repository-sidebar .issues-closed').remove();
     $('.repository-sidebar .history').remove();
     if (/issues$|\/issues\/assigned\/|pulls$|\/pulls\/assigned\/|\/milestones\//.test(pathname)) {
-      console.log('issues found');
       if (!((_ref1 = $('#js-issues-search')) != null ? _ref1.length : void 0)) {
         return false;
       }
@@ -278,7 +277,6 @@
       if (!((_ref2 = $('.timeline-comment-wrapper > .comment')) != null ? _ref2.length : void 0)) {
         return false;
       }
-      console.log('issue found');
       comment_total = 0;
       inject_key = (function(_this) {
         return function() {

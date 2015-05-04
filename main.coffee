@@ -197,7 +197,6 @@ executeContent = ->
   $('.repository-sidebar .history').remove()
 
   if /issues$|\/issues\/assigned\/|pulls$|\/pulls\/assigned\/|\/milestones\//.test pathname
-    console.log 'issues found'
     return false unless !!$('#js-issues-search')?.length
     query = $('#js-issues-search').val()
     repo = $('.dropdown-header > span').attr('title')
@@ -240,7 +239,7 @@ executeContent = ->
     return true
   else if /issues\/\d+$|pull\/\d+$/.test pathname
     return false unless !!$('.timeline-comment-wrapper > .comment')?.length
-    console.log 'issue found'
+
     # don't do it for new pages
     comment_total = 0
     inject_key = =>
