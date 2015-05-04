@@ -112,6 +112,7 @@ executeContent = ->
         page: 1
         per_page: 1000
       }, (issues_data) ->
+        return unless issues_data?.items?.length
         $('.repository-sidebar').append teacup.render ->
           div '.issues-closed animated fadeIn', ->
             h1 '.header', -> "Issues closed this week by user for #{repo}"
@@ -123,6 +124,7 @@ executeContent = ->
         user_data = []
         config_data = {}
         config_index = -1
+        console.log issues_data, 'PANDA'
         for item in issues_data?.items
           continue unless item.assignee?.login
           if config_data[item.assignee.login] is undefined
@@ -137,7 +139,6 @@ executeContent = ->
             label: item.assignee.login
           }
           user_data[user_index].value++
-
         user_data.sort (a, b) ->
           return b.value - a.value
 
@@ -195,6 +196,7 @@ executeContent = ->
 
   $('.repository-sidebar .issues-closed').remove()
   $('.repository-sidebar .history').remove()
+  $(".issue-meta .new-comments").remove()
 
   if /issues$|\/issues\/assigned\/|pulls$|\/pulls\/assigned\/|\/milestones\//.test pathname
     return false unless !!$('#js-issues-search')?.length
@@ -220,7 +222,6 @@ executeContent = ->
       per_page: per_page
       }, (data) ->
         for item in data?.items or []
-          $("li[data-issue-id='#{item.number}'] .new-comments").remove()
           if not localStorage[item.html_url]
             markUnread item.number
             continue

@@ -24,7 +24,6 @@ gh = do ->
       return
 
     requestComplete = ->
-      console.log 'requestComplete', @status, @response
       if (@status < 200 or @status >= 300) and retry
         retry = false
         tokenFetcher.removeCachedToken access_token

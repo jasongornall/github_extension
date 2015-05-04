@@ -1,5 +1,4 @@
 chrome.runtime.onMessage.addListener (request, sender, sendResponse) ->
-  console.log 'hit', request
   switch request.type
     when 'user-info'
       gh.xhrWithAuth 'GET', 'https://api.github.com/user', true, (error, status, response) ->
@@ -59,16 +58,9 @@ chrome.runtime.onMessage.addListener (request, sender, sendResponse) ->
 
   return true
 
-### neat idea maybe later
+
 chrome.tabs.onUpdated.addListener (tabId, changeInfo, tab) ->
   return unless (changeInfo.status == "loading")
-
-  if(/^https?:\/\/github\.com.+\/issues/.test(tab.url))
-    console.log 'inside'
-    chrome.pageAction.setIcon({tabId: tabId, path:"github-green.png"})
-  else
-    console.log 'outside'
-    chrome.pageAction.setIcon({tabId: tabId, path:"github-128.png"})
-###
+  console.log 'PANDA',changeInfo
 
 

@@ -145,7 +145,10 @@
           page: 1,
           per_page: 1000
         }, function(issues_data) {
-          var $legend, config_data, config_index, ctx, helpers, item, legendHolder, myPieChart, user_data, user_index, _i, _len, _ref1, _ref2;
+          var $legend, config_data, config_index, ctx, helpers, item, legendHolder, myPieChart, user_data, user_index, _i, _len, _ref1, _ref2, _ref3;
+          if (!(issues_data != null ? (_ref1 = issues_data.items) != null ? _ref1.length : void 0 : void 0)) {
+            return;
+          }
           $('.repository-sidebar').append(teacup.render(function() {
             return div('.issues-closed animated fadeIn', function() {
               h1('.header', function() {
@@ -162,10 +165,11 @@
           user_data = [];
           config_data = {};
           config_index = -1;
-          _ref1 = issues_data != null ? issues_data.items : void 0;
-          for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
-            item = _ref1[_i];
-            if (!((_ref2 = item.assignee) != null ? _ref2.login : void 0)) {
+          console.log(issues_data, 'PANDA');
+          _ref2 = issues_data != null ? issues_data.items : void 0;
+          for (_i = 0, _len = _ref2.length; _i < _len; _i++) {
+            item = _ref2[_i];
+            if (!((_ref3 = item.assignee) != null ? _ref3.login : void 0)) {
               continue;
             }
             if (config_data[item.assignee.login] === void 0) {
@@ -214,9 +218,9 @@
             myPieChart.draw();
           });
           return $('.repository-sidebar .issues-closed .canvas').on('click', function(e) {
-            var activePoints, label, _ref3;
+            var activePoints, label, _ref4;
             activePoints = myPieChart.getSegmentsAtEvent(e);
-            label = (_ref3 = activePoints[0]) != null ? _ref3.label : void 0;
+            label = (_ref4 = activePoints[0]) != null ? _ref4.label : void 0;
             return $(".repository-sidebar .issues-closed ." + label).click();
           });
         });
@@ -229,6 +233,7 @@
     pathname = new URL(window.location.href).pathname;
     $('.repository-sidebar .issues-closed').remove();
     $('.repository-sidebar .history').remove();
+    $(".issue-meta .new-comments").remove();
     if (/issues$|\/issues\/assigned\/|pulls$|\/pulls\/assigned\/|\/milestones\//.test(pathname)) {
       if (!((_ref1 = $('#js-issues-search')) != null ? _ref1.length : void 0)) {
         return false;
@@ -255,7 +260,6 @@
         _results = [];
         for (_i = 0, _len = _ref2.length; _i < _len; _i++) {
           item = _ref2[_i];
-          $("li[data-issue-id='" + item.number + "'] .new-comments").remove();
           if (!localStorage[item.html_url]) {
             markUnread(item.number);
             continue;

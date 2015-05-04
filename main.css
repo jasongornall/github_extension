@@ -44,6 +44,12 @@
   margin-left: 20px;
   list-style: decimal;
 }
+.issues-closed canvas.canvas {
+  cursor: pointer;
+}
+.issues-closed .legend .pie-legend li > span {
+  cursor: pointer;
+}
 .new-comments {
   opacity: 0;
 }

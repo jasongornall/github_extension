@@ -29,7 +29,6 @@
         xhr.send();
       };
       requestComplete = function() {
-        console.log('requestComplete', this.status, this.response);
         if ((this.status < 200 || this.status >= 300) && retry) {
           retry = false;
           tokenFetcher.removeCachedToken(access_token);

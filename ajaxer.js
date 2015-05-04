@@ -2,7 +2,6 @@
 (function() {
   chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
     var query;
-    console.log('hit', request);
     switch (request.type) {
       case 'user-info':
         gh.xhrWithAuth('GET', 'https://api.github.com/user', true, function(error, status, response) {
@@ -91,17 +90,11 @@
     return true;
   });
 
-
-  /* neat idea maybe later
-  chrome.tabs.onUpdated.addListener (tabId, changeInfo, tab) ->
-    return unless (changeInfo.status == "loading")
-  
-    if(/^https?:\/\/github\.com.+\/issues/.test(tab.url))
-      console.log 'inside'
-      chrome.pageAction.setIcon({tabId: tabId, path:"github-green.png"})
-    else
-      console.log 'outside'
-      chrome.pageAction.setIcon({tabId: tabId, path:"github-128.png"})
-   */
+  chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab) {
+    if (!(changeInfo.status === "loading")) {
+      return;
+    }
+    return console.log('PANDA', changeInfo);
+  });
 
 }).call(this);
