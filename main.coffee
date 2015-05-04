@@ -92,99 +92,197 @@ executeContent = ->
                 a href:url, -> title
 
   injectPieChart = ->
+
+    t = new Date()
+    dayCount = t.getDay()
+    if dayCount is 0
+      dayCount = 7
+    t.setDate t.getDate() - dayCount
+    t.setHours(0,0,0,0)
+    created = t.toISOString().substr(0, 10)
+    query_issues = "closed:>#{created} is:issue"
     chrome.runtime.sendMessage {
-      type: 'get-config'
-      config: 'user_breakdown'
-    }, (data) ->
-      return unless data is 'true'
-      t = new Date()
-      dayCount = t.getDay()
-      if dayCount is 0
-        dayCount = 7
-      t.setDate t.getDate() - dayCount
-      t.setHours(0,0,0,0)
-      created = t.toISOString().substr(0, 10)
-      query_issues = "closed:>#{created} is:issue"
-      chrome.runtime.sendMessage {
-        type: 'search-info'
-        query: query_issues
-        repo:repo
-        page: 1
-        per_page: 1000
-      }, (issues_data) ->
-        return unless issues_data?.items?.length
-        $('.repository-sidebar').append teacup.render ->
+      type: 'search-info'
+      query: query_issues
+      repo:repo
+      page: 1
+      per_page: 1000
+    }, (issues_data) ->
+      return unless issues_data?.items?.length
+      $('.repository-sidebar').append teacup.render ->
+        div '.info', ->
+          h1 "information for #{repo}"
           div '.issues-closed animated fadeIn', ->
-            h1 '.header', -> "Issues closed this week by user for #{repo}"
+            h1 '.header', -> "Issues closed this week by user"
             canvas '.canvas', 'width': '180', 'height': '180'
-            div '.legend'
+            div '.legend', -> 'loading...'
+          div '.milestone-breakdown animated fadeIn', ->
+            h1 '.header', -> "Issues closed this week by Milestone"
+            canvas '.canvas', 'width': '180', 'height': '180'
+            div '.legend', -> 'loading...'
 
-        ctx = $('.repository-sidebar .issues-closed .canvas').get(0).getContext('2d')
+      ctx = $('.repository-sidebar .issues-closed .canvas').get(0).getContext('2d')
 
-        user_data = []
-        config_data = {}
-        config_index = -1
-        console.log issues_data, 'PANDA'
-        for item in issues_data?.items
-          continue unless item.assignee?.login
-          if config_data[item.assignee.login] is undefined
-            config_index++
-            config_data[item.assignee.login] = config_index
-          user_index = config_data[item.assignee.login]
 
-          user_data[user_index] ?= {
-            value: 0
-            color: window.colors[user_index]
-            highlight: window.colors[user_index]
-            label: item.assignee.login
-          }
-          user_data[user_index].value++
-        user_data.sort (a, b) ->
-          return b.value - a.value
+      ### breakup issues by user ###
 
-        myPieChart = new Chart(ctx).Pie user_data, {
-          legendTemplate: """
-            <ol class=\ "<%=name.toLowerCase()%>-legend\">
-                <% for (var i=0; i<segments.length; i++){%>
-                    <li class=\ "<%=segments[i].label%>\" style=\ "color:<%=segments[i].fillColor%>\" >
-                      <span>
-                        <%if(segments[i].label){%>
-                            <%=segments[i].label%>
-                                <%}%>
-                      </span>
-                    </li>
-                    <%}%>
-            </ol>
-          """
-          animateRotate : false
-        }
-        $legend = $('.repository-sidebar .issues-closed .legend')
-        $legend.html myPieChart.generateLegend()
-        legendHolder = $legend[0]
-
-        $legend.find('.pie-legend li').on 'click', (e) ->
-          $el = $ e.currentTarget
-          assignee = $el.find('span').text().trim()
-          $('#js-issues-search').val("closed:>#{created} assignee:#{assignee} is:issue")
-          $('#js-issues-search').closest('form').submit()
-
-        helpers = Chart.helpers;
-        helpers.each $legend.find('.pie-legend').children(), (legendNode, index) ->
-          helpers.addEvent legendNode, 'mouseover', ->
-
-            activeSegment = myPieChart.segments[index]
-            activeSegment.save()
-            myPieChart.showTooltip [ activeSegment ]
-            activeSegment.restore()
+      do ->
+        chrome.runtime.sendMessage {
+          type: 'get-config'
+          config: 'user_breakdown'
+        }, (data) ->
+          if data isnt 'true'
+            $('.info > .issues-closed').remove()
             return
-          return
-        helpers.addEvent $legend[0], 'mouseleave', ->
-          myPieChart.draw()
-          return
-        $('.repository-sidebar .issues-closed .canvas').on 'click', (e) ->
-          activePoints = myPieChart.getSegmentsAtEvent(e)
-          label = activePoints[0]?.label
-          $(".repository-sidebar .issues-closed .#{label}").click()
+          user_data = []
+          config_data = {}
+          config_index = -1
+          console.log issues_data, 'PANDA'
+          for item in issues_data?.items
+            item.assignee ?= {login:'unassigned'}
+            if config_data[item.assignee.login] is undefined
+              config_index++
+              config_data[item.assignee.login] = config_index
+            user_index = config_data[item.assignee.login]
+
+            user_data[user_index] ?= {
+              value: 0
+              color: window.colors[user_index]
+              highlight: window.colors[user_index]
+              label: item.assignee.login
+            }
+            user_data[user_index].value++
+          user_data.sort (a, b) ->
+            return b.value - a.value
+
+          myPieChart = new Chart(ctx).Pie user_data, {
+            legendTemplate: """
+              <ol class=\ "<%=name.toLowerCase()%>-legend\">
+                  <% for (var i=0; i<segments.length; i++){%>
+                      <li class=\ "<%=segments[i].label.split(' ').join('_')%>\" style=\ "color:<%=segments[i].fillColor%>\" >
+                        <span>
+                          <%if(segments[i].label){%>
+                              <%=segments[i].label%>
+                                  <%}%>
+                        </span>
+                      </li>
+                      <%}%>
+              </ol>
+            """
+            animateRotate : false
+          }
+          $legend = $('.repository-sidebar .issues-closed .legend')
+          $legend.html myPieChart.generateLegend()
+          legendHolder = $legend[0]
+
+          $legend.find('.pie-legend li').on 'click', (e) ->
+            $el = $ e.currentTarget
+            assignee = $el.find('span').text().trim()
+            if assignee is 'unassigned'
+              assignee = 'no:assignee'
+            else
+              assignee = "assignee:#{assignee}"
+            $('#js-issues-search').val("closed:>#{created} #{assignee} is:issue")
+            $('#js-issues-search').closest('form').submit()
+
+          helpers = Chart.helpers;
+          helpers.each $legend.find('.pie-legend').children(), (legendNode, index) ->
+            helpers.addEvent legendNode, 'mouseover', ->
+
+              activeSegment = myPieChart.segments[index]
+              activeSegment.save()
+              myPieChart.showTooltip [ activeSegment ]
+              activeSegment.restore()
+              return
+            return
+          helpers.addEvent $legend[0], 'mouseleave', ->
+            myPieChart.draw()
+            return
+          $('.repository-sidebar .issues-closed .canvas').on 'click', (e) ->
+            activePoints = myPieChart.getSegmentsAtEvent(e)
+            label = activePoints[0]?.label
+            $(".repository-sidebar .issues-closed .#{label.split(' ').join('_')}").click()
+
+
+      ### breakup issues by Milestone ###
+      do ->
+        chrome.runtime.sendMessage {
+          type: 'get-config'
+          config: 'milestone_breakdown'
+        }, (data) ->
+          if data isnt 'true'
+            $('.info > .milestone-breakdown').remove()
+            return
+          console.log 'inside'
+          ctx = $('.repository-sidebar .milestone-breakdown .canvas').get(0).getContext('2d')
+          milestone_data = []
+          config_data = {}
+          config_index = -1
+          for item in issues_data?.items
+            item.milestone ?= {title:'no milestone'}
+            if config_data[item.milestone.title] is undefined
+              config_index++
+              config_data[item.milestone.title] = config_index
+            milestone_index = config_data[item.milestone.title]
+
+            milestone_data[milestone_index] ?= {
+              value: 0
+              color: window.colors[milestone_index]
+              highlight: window.colors[milestone_index]
+              label: item.milestone.title
+            }
+            milestone_data[milestone_index].value++
+          milestone_data.sort (a, b) ->
+            return b.value - a.value
+
+          myPieChart = new Chart(ctx).Pie milestone_data, {
+            legendTemplate: """
+              <ol class=\ "<%=name.toLowerCase()%>-legend\">
+                  <% for (var i=0; i<segments.length; i++){%>
+                      <li class=\ "<%=segments[i].label.split(' ').join('_')%>\" style=\ "color:<%=segments[i].fillColor%>\" >
+                        <span>
+                          <%if(segments[i].label){%>
+                              <%=segments[i].label%>
+                                  <%}%>
+                        </span>
+                      </li>
+                      <%}%>
+              </ol>
+            """
+            animateRotate : false
+          }
+          $legend = $('.repository-sidebar .milestone-breakdown .legend')
+          $legend.html myPieChart.generateLegend()
+          legendHolder = $legend[0]
+
+          $legend.find('.pie-legend li').on 'click', (e) ->
+            $el = $ e.currentTarget
+            milestone = $el.find('span').text().trim()
+            if milestone is 'no milestone'
+              milestone = 'no:milestone'
+            else
+              milestone = "milestone:\"#{milestone}\""
+            $('#js-issues-search').val("closed:>#{created} #{milestone} is:issue")
+            $('#js-issues-search').closest('form').submit()
+
+          helpers = Chart.helpers;
+          helpers.each $legend.find('.pie-legend').children(), (legendNode, index) ->
+            helpers.addEvent legendNode, 'mouseover', ->
+
+              activeSegment = myPieChart.segments[index]
+              activeSegment.save()
+              myPieChart.showTooltip [ activeSegment ]
+              activeSegment.restore()
+              return
+            return
+          helpers.addEvent $legend[0], 'mouseleave', ->
+            myPieChart.draw()
+            return
+          $('.repository-sidebar .milestone-breakdown .canvas').on 'click', (e) ->
+            activePoints = myPieChart.getSegmentsAtEvent(e)
+            label = activePoints[0]?.label
+            $(".repository-sidebar .milestone-breakdown .#{label.split(' ').join('_')}").click()
+
 
 
 
@@ -195,6 +293,7 @@ executeContent = ->
   pathname = new URL(window.location.href).pathname
 
   $('.repository-sidebar .issues-closed').remove()
+  $('.repository-sidebar .milestone-breakdown').remove()
   $('.repository-sidebar .history').remove()
   $(".issue-meta .new-comments").remove()
 

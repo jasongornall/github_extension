@@ -16,6 +16,17 @@
   min-width: inherit;
   font-size: 15px;
   text-align: center;
+
+}
+.repository-sidebar > .info {
+  width: 180px;
+  background: rgba(0, 0, 0, 0.1);
+  padding-top: 1px;
+  margin-top: 40px;
+}
+}
+.repository-sidebar > .info > h1 {
+  color: red;
 }
 .repository-sidebar .history .hist-item {
   list-style: decimal;
@@ -29,9 +40,12 @@
   text-overflow: ellipsis;
   vertical-align: bottom;
 }
+.milestone-breakdown,
 .issues-closed {
   width: 180px;
 }
+
+.milestone-breakdown .legend,
 .issues-closed .legend {
   display: inline-block;
   width: 100%;
@@ -40,16 +54,21 @@
   text-overflow: ellipsis;
   vertical-align: bottom;
 }
+.milestone-breakdown .legend .pie-legend,
 .issues-closed .legend .pie-legend {
   margin-left: 20px;
   list-style: decimal;
 }
+.milestone-breakdown canvas.canvas,
 .issues-closed canvas.canvas {
   cursor: pointer;
 }
+.milestone-breakdown .legend .pie-legend li > span,
 .issues-closed .legend .pie-legend li > span {
   cursor: pointer;
 }
+
+
 .new-comments {
   opacity: 0;
 }

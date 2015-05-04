@@ -121,109 +121,222 @@
       });
     };
     injectPieChart = function() {
+      var created, dayCount, query_issues, t;
+      t = new Date();
+      dayCount = t.getDay();
+      if (dayCount === 0) {
+        dayCount = 7;
+      }
+      t.setDate(t.getDate() - dayCount);
+      t.setHours(0, 0, 0, 0);
+      created = t.toISOString().substr(0, 10);
+      query_issues = "closed:>" + created + " is:issue";
       return chrome.runtime.sendMessage({
-        type: 'get-config',
-        config: 'user_breakdown'
-      }, function(data) {
-        var created, dayCount, query_issues, t;
-        if (data !== 'true') {
+        type: 'search-info',
+        query: query_issues,
+        repo: repo,
+        page: 1,
+        per_page: 1000
+      }, function(issues_data) {
+        var ctx, _ref1;
+        if (!(issues_data != null ? (_ref1 = issues_data.items) != null ? _ref1.length : void 0 : void 0)) {
           return;
         }
-        t = new Date();
-        dayCount = t.getDay();
-        if (dayCount === 0) {
-          dayCount = 7;
-        }
-        t.setDate(t.getDate() - dayCount);
-        t.setHours(0, 0, 0, 0);
-        created = t.toISOString().substr(0, 10);
-        query_issues = "closed:>" + created + " is:issue";
-        return chrome.runtime.sendMessage({
-          type: 'search-info',
-          query: query_issues,
-          repo: repo,
-          page: 1,
-          per_page: 1000
-        }, function(issues_data) {
-          var $legend, config_data, config_index, ctx, helpers, item, legendHolder, myPieChart, user_data, user_index, _i, _len, _ref1, _ref2, _ref3;
-          if (!(issues_data != null ? (_ref1 = issues_data.items) != null ? _ref1.length : void 0 : void 0)) {
-            return;
-          }
-          $('.repository-sidebar').append(teacup.render(function() {
-            return div('.issues-closed animated fadeIn', function() {
+        $('.repository-sidebar').append(teacup.render(function() {
+          return div('.info', function() {
+            h1("information for " + repo);
+            div('.issues-closed animated fadeIn', function() {
               h1('.header', function() {
-                return "Issues closed this week by user for " + repo;
+                return "Issues closed this week by user";
               });
               canvas('.canvas', {
                 'width': '180',
                 'height': '180'
               });
-              return div('.legend');
+              return div('.legend', function() {
+                return 'loading...';
+              });
             });
-          }));
-          ctx = $('.repository-sidebar .issues-closed .canvas').get(0).getContext('2d');
-          user_data = [];
-          config_data = {};
-          config_index = -1;
-          console.log(issues_data, 'PANDA');
-          _ref2 = issues_data != null ? issues_data.items : void 0;
-          for (_i = 0, _len = _ref2.length; _i < _len; _i++) {
-            item = _ref2[_i];
-            if (!((_ref3 = item.assignee) != null ? _ref3.login : void 0)) {
-              continue;
-            }
-            if (config_data[item.assignee.login] === void 0) {
-              config_index++;
-              config_data[item.assignee.login] = config_index;
-            }
-            user_index = config_data[item.assignee.login];
-            if (user_data[user_index] == null) {
-              user_data[user_index] = {
-                value: 0,
-                color: window.colors[user_index],
-                highlight: window.colors[user_index],
-                label: item.assignee.login
-              };
-            }
-            user_data[user_index].value++;
-          }
-          user_data.sort(function(a, b) {
-            return b.value - a.value;
-          });
-          myPieChart = new Chart(ctx).Pie(user_data, {
-            legendTemplate: "<ol class=\ \"<%=name.toLowerCase()%>-legend\">\n    <% for (var i=0; i<segments.length; i++){%>\n        <li class=\ \"<%=segments[i].label%>\" style=\ \"color:<%=segments[i].fillColor%>\" >\n          <span>\n            <%if(segments[i].label){%>\n                <%=segments[i].label%>\n                    <%}%>\n          </span>\n        </li>\n        <%}%>\n</ol>",
-            animateRotate: false
-          });
-          $legend = $('.repository-sidebar .issues-closed .legend');
-          $legend.html(myPieChart.generateLegend());
-          legendHolder = $legend[0];
-          $legend.find('.pie-legend li').on('click', function(e) {
-            var $el, assignee;
-            $el = $(e.currentTarget);
-            assignee = $el.find('span').text().trim();
-            $('#js-issues-search').val("closed:>" + created + " assignee:" + assignee + " is:issue");
-            return $('#js-issues-search').closest('form').submit();
-          });
-          helpers = Chart.helpers;
-          helpers.each($legend.find('.pie-legend').children(), function(legendNode, index) {
-            helpers.addEvent(legendNode, 'mouseover', function() {
-              var activeSegment;
-              activeSegment = myPieChart.segments[index];
-              activeSegment.save();
-              myPieChart.showTooltip([activeSegment]);
-              activeSegment.restore();
+            return div('.milestone-breakdown animated fadeIn', function() {
+              h1('.header', function() {
+                return "Issues closed this week by Milestone";
+              });
+              canvas('.canvas', {
+                'width': '180',
+                'height': '180'
+              });
+              return div('.legend', function() {
+                return 'loading...';
+              });
             });
           });
-          helpers.addEvent($legend[0], 'mouseleave', function() {
-            myPieChart.draw();
+        }));
+        ctx = $('.repository-sidebar .issues-closed .canvas').get(0).getContext('2d');
+
+        /* breakup issues by user */
+        (function() {
+          return chrome.runtime.sendMessage({
+            type: 'get-config',
+            config: 'user_breakdown'
+          }, function(data) {
+            var $legend, config_data, config_index, helpers, item, legendHolder, myPieChart, user_data, user_index, _i, _len, _ref2;
+            if (data !== 'true') {
+              $('.info > .issues-closed').remove();
+              return;
+            }
+            user_data = [];
+            config_data = {};
+            config_index = -1;
+            console.log(issues_data, 'PANDA');
+            _ref2 = issues_data != null ? issues_data.items : void 0;
+            for (_i = 0, _len = _ref2.length; _i < _len; _i++) {
+              item = _ref2[_i];
+              if (item.assignee == null) {
+                item.assignee = {
+                  login: 'unassigned'
+                };
+              }
+              if (config_data[item.assignee.login] === void 0) {
+                config_index++;
+                config_data[item.assignee.login] = config_index;
+              }
+              user_index = config_data[item.assignee.login];
+              if (user_data[user_index] == null) {
+                user_data[user_index] = {
+                  value: 0,
+                  color: window.colors[user_index],
+                  highlight: window.colors[user_index],
+                  label: item.assignee.login
+                };
+              }
+              user_data[user_index].value++;
+            }
+            user_data.sort(function(a, b) {
+              return b.value - a.value;
+            });
+            myPieChart = new Chart(ctx).Pie(user_data, {
+              legendTemplate: "<ol class=\ \"<%=name.toLowerCase()%>-legend\">\n    <% for (var i=0; i<segments.length; i++){%>\n        <li class=\ \"<%=segments[i].label.split(' ').join('_')%>\" style=\ \"color:<%=segments[i].fillColor%>\" >\n          <span>\n            <%if(segments[i].label){%>\n                <%=segments[i].label%>\n                    <%}%>\n          </span>\n        </li>\n        <%}%>\n</ol>",
+              animateRotate: false
+            });
+            $legend = $('.repository-sidebar .issues-closed .legend');
+            $legend.html(myPieChart.generateLegend());
+            legendHolder = $legend[0];
+            $legend.find('.pie-legend li').on('click', function(e) {
+              var $el, assignee;
+              $el = $(e.currentTarget);
+              assignee = $el.find('span').text().trim();
+              if (assignee === 'unassigned') {
+                assignee = 'no:assignee';
+              } else {
+                assignee = "assignee:" + assignee;
+              }
+              $('#js-issues-search').val("closed:>" + created + " " + assignee + " is:issue");
+              return $('#js-issues-search').closest('form').submit();
+            });
+            helpers = Chart.helpers;
+            helpers.each($legend.find('.pie-legend').children(), function(legendNode, index) {
+              helpers.addEvent(legendNode, 'mouseover', function() {
+                var activeSegment;
+                activeSegment = myPieChart.segments[index];
+                activeSegment.save();
+                myPieChart.showTooltip([activeSegment]);
+                activeSegment.restore();
+              });
+            });
+            helpers.addEvent($legend[0], 'mouseleave', function() {
+              myPieChart.draw();
+            });
+            return $('.repository-sidebar .issues-closed .canvas').on('click', function(e) {
+              var activePoints, label, _ref3;
+              activePoints = myPieChart.getSegmentsAtEvent(e);
+              label = (_ref3 = activePoints[0]) != null ? _ref3.label : void 0;
+              return $(".repository-sidebar .issues-closed ." + (label.split(' ').join('_'))).click();
+            });
           });
-          return $('.repository-sidebar .issues-closed .canvas').on('click', function(e) {
-            var activePoints, label, _ref4;
-            activePoints = myPieChart.getSegmentsAtEvent(e);
-            label = (_ref4 = activePoints[0]) != null ? _ref4.label : void 0;
-            return $(".repository-sidebar .issues-closed ." + label).click();
+        })();
+
+        /* breakup issues by Milestone */
+        return (function() {
+          return chrome.runtime.sendMessage({
+            type: 'get-config',
+            config: 'milestone_breakdown'
+          }, function(data) {
+            var $legend, config_data, config_index, helpers, item, legendHolder, milestone_data, milestone_index, myPieChart, _i, _len, _ref2;
+            if (data !== 'true') {
+              $('.info > .milestone-breakdown').remove();
+              return;
+            }
+            console.log('inside');
+            ctx = $('.repository-sidebar .milestone-breakdown .canvas').get(0).getContext('2d');
+            milestone_data = [];
+            config_data = {};
+            config_index = -1;
+            _ref2 = issues_data != null ? issues_data.items : void 0;
+            for (_i = 0, _len = _ref2.length; _i < _len; _i++) {
+              item = _ref2[_i];
+              if (item.milestone == null) {
+                item.milestone = {
+                  title: 'no milestone'
+                };
+              }
+              if (config_data[item.milestone.title] === void 0) {
+                config_index++;
+                config_data[item.milestone.title] = config_index;
+              }
+              milestone_index = config_data[item.milestone.title];
+              if (milestone_data[milestone_index] == null) {
+                milestone_data[milestone_index] = {
+                  value: 0,
+                  color: window.colors[milestone_index],
+                  highlight: window.colors[milestone_index],
+                  label: item.milestone.title
+                };
+              }
+              milestone_data[milestone_index].value++;
+            }
+            milestone_data.sort(function(a, b) {
+              return b.value - a.value;
+            });
+            myPieChart = new Chart(ctx).Pie(milestone_data, {
+              legendTemplate: "<ol class=\ \"<%=name.toLowerCase()%>-legend\">\n    <% for (var i=0; i<segments.length; i++){%>\n        <li class=\ \"<%=segments[i].label.split(' ').join('_')%>\" style=\ \"color:<%=segments[i].fillColor%>\" >\n          <span>\n            <%if(segments[i].label){%>\n                <%=segments[i].label%>\n                    <%}%>\n          </span>\n        </li>\n        <%}%>\n</ol>",
+              animateRotate: false
+            });
+            $legend = $('.repository-sidebar .milestone-breakdown .legend');
+            $legend.html(myPieChart.generateLegend());
+            legendHolder = $legend[0];
+            $legend.find('.pie-legend li').on('click', function(e) {
+              var $el, milestone;
+              $el = $(e.currentTarget);
+              milestone = $el.find('span').text().trim();
+              if (milestone === 'no milestone') {
+                milestone = 'no:milestone';
+              } else {
+                milestone = "milestone:\"" + milestone + "\"";
+              }
+              $('#js-issues-search').val("closed:>" + created + " " + milestone + " is:issue");
+              return $('#js-issues-search').closest('form').submit();
+            });
+            helpers = Chart.helpers;
+            helpers.each($legend.find('.pie-legend').children(), function(legendNode, index) {
+              helpers.addEvent(legendNode, 'mouseover', function() {
+                var activeSegment;
+                activeSegment = myPieChart.segments[index];
+                activeSegment.save();
+                myPieChart.showTooltip([activeSegment]);
+                activeSegment.restore();
+              });
+            });
+            helpers.addEvent($legend[0], 'mouseleave', function() {
+              myPieChart.draw();
+            });
+            return $('.repository-sidebar .milestone-breakdown .canvas').on('click', function(e) {
+              var activePoints, label, _ref3;
+              activePoints = myPieChart.getSegmentsAtEvent(e);
+              label = (_ref3 = activePoints[0]) != null ? _ref3.label : void 0;
+              return $(".repository-sidebar .milestone-breakdown ." + (label.split(' ').join('_'))).click();
+            });
           });
-        });
+        })();
       });
     };
     teacup = window.window.teacup;
@@ -232,6 +345,7 @@
     url = parseQueryString();
     pathname = new URL(window.location.href).pathname;
     $('.repository-sidebar .issues-closed').remove();
+    $('.repository-sidebar .milestone-breakdown').remove();
     $('.repository-sidebar .history').remove();
     $(".issue-meta .new-comments").remove();
     if (/issues$|\/issues\/assigned\/|pulls$|\/pulls\/assigned\/|\/milestones\//.test(pathname)) {
