@@ -344,15 +344,21 @@
     span = teacup.span, canvas = teacup.canvas, div = teacup.div, ul = teacup.ul, ol = teacup.ol, li = teacup.li, a = teacup.a, h1 = teacup.h1, h3 = teacup.h3, p = teacup.p, iframe = teacup.iframe, raw = teacup.raw, script = teacup.script, coffeescript = teacup.coffeescript, link = teacup.link, input = teacup.input, img = teacup.img;
     old_entry = null;
     url = parseQueryString();
+    console.log(url, 'panda');
     pathname = new URL(window.location.href).pathname;
     $('.repository-sidebar .info').remove();
     $('.repository-sidebar .history').remove();
     $(".issue-meta .new-comments").remove();
+    console.log("WAKKA WAKKA");
     if (/issues$|\/issues\/assigned\/|pulls$|\/pulls\/assigned\/|\/milestones\//.test(pathname)) {
       if (!((_ref1 = $('#js-issues-search')) != null ? _ref1.length : void 0)) {
         return false;
       }
-      query = $('#js-issues-search').val();
+      if (url.q) {
+        query = decodeURIComponent(url.q);
+      } else {
+        query = $('#js-issues-search').val();
+      }
       repo = $('.dropdown-header > span').attr('title');
       query = query.replace(/\s/g, '+');
       query_str = "" + query;

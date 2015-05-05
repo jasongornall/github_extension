@@ -291,15 +291,19 @@ executeContent = ->
   {span, canvas,  div, ul, ol, li, a, h1, h3, p, iframe, raw, script, coffeescript, link, input, img} = teacup
   old_entry = null
   url = parseQueryString()
+  console.log url, 'panda'
   pathname = new URL(window.location.href).pathname
 
   $('.repository-sidebar .info').remove()
   $('.repository-sidebar .history').remove()
   $(".issue-meta .new-comments").remove()
-
+  console.log "WAKKA WAKKA"
   if /issues$|\/issues\/assigned\/|pulls$|\/pulls\/assigned\/|\/milestones\//.test pathname
     return false unless !!$('#js-issues-search')?.length
-    query = $('#js-issues-search').val()
+    if url.q
+      query = decodeURIComponent(url.q)
+    else
+      query = $('#js-issues-search').val()
     repo = $('.dropdown-header > span').attr('title')
 
     query = query.replace(/\s/g, '+')
