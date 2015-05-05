@@ -80,7 +80,6 @@ $(document).ready ->
           type: 'get-config'
           config: val
         }, (data) ->
-          console.log data, 'PANDA'
           if val is 'disable'
             $el.siblings('input').attr('disabled', (data is 'true'))
 

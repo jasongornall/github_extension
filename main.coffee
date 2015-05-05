@@ -138,7 +138,6 @@ executeContent = ->
           user_data = []
           config_data = {}
           config_index = -1
-          console.log issues_data, 'PANDA'
           for item in issues_data?.items
             item.assignee ?= {login:'unassigned'}
             if config_data[item.assignee.login] is undefined
@@ -214,7 +213,6 @@ executeContent = ->
           if data isnt 'true'
             $('.info > .milestone-breakdown').remove()
             return
-          console.log 'inside'
           ctx = $('.repository-sidebar .milestone-breakdown .canvas').get(0).getContext('2d')
           milestone_data = []
           config_data = {}
@@ -291,13 +289,11 @@ executeContent = ->
   {span, canvas,  div, ul, ol, li, a, h1, h3, p, iframe, raw, script, coffeescript, link, input, img} = teacup
   old_entry = null
   url = parseQueryString()
-  console.log url, 'panda'
   pathname = new URL(window.location.href).pathname
 
   $('.repository-sidebar .info').remove()
   $('.repository-sidebar .history').remove()
   $(".issue-meta .new-comments").remove()
-  console.log "WAKKA WAKKA"
   if /issues$|\/issues\/assigned\/|pulls$|\/pulls\/assigned\/|\/milestones\//.test pathname
     return false unless !!$('#js-issues-search')?.length
     if url.q

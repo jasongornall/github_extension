@@ -6,7 +6,6 @@ gh = do ->
 
     getToken = ->
       tokenFetcher.getToken interactive, (error, token) ->
-        console.log 'token fetch', error, token
         if error
           callback error
           return
@@ -33,7 +32,6 @@ gh = do ->
         callback null, @status, @response
       return
 
-    console.log 'xhrWithAuth', method, url, interactive
     getToken()
     return
 
@@ -49,7 +47,6 @@ gh = do ->
     return
 
   handleError = (error) ->
-   console.log error
 
   disableButton = (button) ->
     button?.disabled = true
@@ -57,12 +54,10 @@ gh = do ->
 
   onUserInfoFetched = (error, status, response) ->
     if !error and status == 200
-      console.log 'Got the following user info: ' + response
       user_info = JSON.parse(response)
       populateUserInfo user_info
       fetchUserRepos user_info['repos_url']
     else
-      console.log 'infoFetch failed', error, status
       handleError error
     return
 
@@ -79,7 +74,6 @@ gh = do ->
 
   onUserReposFetched = (error, status, response) ->
     if !error and status == 200
-      console.log 'Got the following user repos:', response
       user_repos = JSON.parse(response)
       user_repos.forEach (repo) ->
         if repo.private
@@ -89,7 +83,6 @@ gh = do ->
         elem.value += '\n'
         return
     else
-      console.log 'infoFetch failed', error, status
     return
 
   # Handlers for the buttons's onclick events.
@@ -100,7 +93,6 @@ gh = do ->
       next error, access_token
 
   revokeToken = ->
-    console.log 'REVOKE'
     # We are opening the web page that allows user to revoke their token.
     # And then clear the user interface, showing the Sign in button only.
     # If the user revokes the app authorization, they will be prompted to log
@@ -138,7 +130,6 @@ gh = do ->
           values
 
         handleProviderResponse = (values) ->
-          console.log 'providerResponse', values
           if values.hasOwnProperty('access_token')
             setAccessToken values.access_token
           else if values.hasOwnProperty('code')
@@ -158,13 +149,11 @@ gh = do ->
             # can be easily parsed to an object.
             if @status == 200
               response = JSON.parse(@responseText)
-              console.log response
               if response.hasOwnProperty('access_token')
                 setAccessToken response.access_token
               else
                 callback new Error('Cannot obtain access_token from code.')
             else
-              console.log 'code exchange status:', this
               callback new Error('Code exchange failed')
             return
 
@@ -174,20 +163,17 @@ gh = do ->
         setAccessToken = (token) ->
           access_token = token
           localStorage['access_token'] = token
-          console.log 'Setting access_token: ', access_token
           callback null, access_token
           return
 
         access_token ?= localStorage['access_token']
         if access_token
-          console.log access_token, 'panda'
           callback null, access_token
           return
         options =
           'interactive': interactive
           'url': 'https://github.com/login/oauth/authorize' + '?client_id=' + clientId + '&redirect_uri=' + encodeURIComponent(redirectUri) + '&scope=user,repo'
         chrome.identity.launchWebAuthFlow options, (redirectUri) ->
-          console.log 'launchWebAuthFlow completed', chrome.runtime.lastError, redirectUri
           if chrome.runtime.lastError
             callback new Error(chrome.runtime.lastError)
             return
@@ -228,7 +214,6 @@ gh = do ->
 
       user_info_div = document.querySelector('#user_info');
 
-      console.log(signin_button, revoke_button, user_info_div);
 
       showButton(signin_button);
       getUserInfo(false);

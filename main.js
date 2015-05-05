@@ -188,7 +188,6 @@
             user_data = [];
             config_data = {};
             config_index = -1;
-            console.log(issues_data, 'PANDA');
             _ref2 = issues_data != null ? issues_data.items : void 0;
             for (_i = 0, _len = _ref2.length; _i < _len; _i++) {
               item = _ref2[_i];
@@ -267,7 +266,6 @@
               $('.info > .milestone-breakdown').remove();
               return;
             }
-            console.log('inside');
             ctx = $('.repository-sidebar .milestone-breakdown .canvas').get(0).getContext('2d');
             milestone_data = [];
             config_data = {};
@@ -344,12 +342,10 @@
     span = teacup.span, canvas = teacup.canvas, div = teacup.div, ul = teacup.ul, ol = teacup.ol, li = teacup.li, a = teacup.a, h1 = teacup.h1, h3 = teacup.h3, p = teacup.p, iframe = teacup.iframe, raw = teacup.raw, script = teacup.script, coffeescript = teacup.coffeescript, link = teacup.link, input = teacup.input, img = teacup.img;
     old_entry = null;
     url = parseQueryString();
-    console.log(url, 'panda');
     pathname = new URL(window.location.href).pathname;
     $('.repository-sidebar .info').remove();
     $('.repository-sidebar .history').remove();
     $(".issue-meta .new-comments").remove();
-    console.log("WAKKA WAKKA");
     if (/issues$|\/issues\/assigned\/|pulls$|\/pulls\/assigned\/|\/milestones\//.test(pathname)) {
       if (!((_ref1 = $('#js-issues-search')) != null ? _ref1.length : void 0)) {
         return false;

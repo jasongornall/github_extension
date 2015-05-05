@@ -2,7 +2,6 @@
 (function() {
   chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
     var query;
-    console.log('a');
     switch (request.type) {
       case 'user-info':
         gh.xhrWithAuth('GET', 'https://api.github.com/user', true, function(error, status, response) {
@@ -25,7 +24,6 @@
         break;
       case 'search-info':
         query = "https://api.github.com/search/issues?q=" + request.query + "+repo:" + request.repo + "&page=" + request.page + "&per_page=" + request.per_page;
-        console.log(query, 'panda');
         gh.xhrWithAuth('GET', query, false, function(error, status, response) {
           var json;
           if (response) {

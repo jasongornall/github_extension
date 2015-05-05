@@ -1,5 +1,4 @@
 chrome.runtime.onMessage.addListener (request, sender, sendResponse) ->
-  console.log 'a'
   switch request.type
     when 'user-info'
       gh.xhrWithAuth 'GET', 'https://api.github.com/user', true, (error, status, response) ->
@@ -13,7 +12,6 @@ chrome.runtime.onMessage.addListener (request, sender, sendResponse) ->
 
      when 'search-info'
       query  = "https://api.github.com/search/issues?q=#{request.query}+repo:#{request.repo}&page=#{request.page}&per_page=#{request.per_page}"
-      console.log query, 'panda'
       gh.xhrWithAuth 'GET', query, false, (error, status, response) ->
         json = JSON.parse(response) if response
         if error or json?.errors

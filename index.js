@@ -11,7 +11,6 @@
       access_token = void 0;
       getToken = function() {
         tokenFetcher.getToken(interactive, function(error, token) {
-          console.log('token fetch', error, token);
           if (error) {
             callback(error);
             return;
@@ -38,7 +37,6 @@
           callback(null, this.status, this.response);
         }
       };
-      console.log('xhrWithAuth', method, url, interactive);
       getToken();
     };
     getUserInfo = function(interactive) {
@@ -52,9 +50,7 @@
         button.disabled = false;
       }
     };
-    handleError = function(error) {
-      return console.log(error);
-    };
+    handleError = function(error) {};
     disableButton = function(button) {
       if (button != null) {
         button.disabled = true;
@@ -63,12 +59,10 @@
     onUserInfoFetched = function(error, status, response) {
       var user_info;
       if (!error && status === 200) {
-        console.log('Got the following user info: ' + response);
         user_info = JSON.parse(response);
         populateUserInfo(user_info);
         fetchUserRepos(user_info['repos_url']);
       } else {
-        console.log('infoFetch failed', error, status);
         handleError(error);
       }
     };
@@ -87,7 +81,6 @@
     onUserReposFetched = function(error, status, response) {
       var user_repos;
       if (!error && status === 200) {
-        console.log('Got the following user repos:', response);
         user_repos = JSON.parse(response);
         user_repos.forEach(function(repo) {
           if (repo["private"]) {
@@ -98,7 +91,7 @@
           elem.value += '\n';
         });
       } else {
-        console.log('infoFetch failed', error, status);
+
       }
     };
     interactiveSignIn = function(next) {
@@ -108,7 +101,6 @@
       });
     };
     revokeToken = function() {
-      console.log('REVOKE');
       localStorage.removeItem('access_token');
       tokenFetcher.getToken(false, function(error, access_token) {
         return tokenFetcher.removeCachedToken(access_token);
@@ -140,7 +132,6 @@
             return values;
           };
           handleProviderResponse = function(values) {
-            console.log('providerResponse', values);
             if (values.hasOwnProperty('access_token')) {
               setAccessToken(values.access_token);
             } else if (values.hasOwnProperty('code')) {
@@ -159,14 +150,12 @@
               var response;
               if (this.status === 200) {
                 response = JSON.parse(this.responseText);
-                console.log(response);
                 if (response.hasOwnProperty('access_token')) {
                   setAccessToken(response.access_token);
                 } else {
                   callback(new Error('Cannot obtain access_token from code.'));
                 }
               } else {
-                console.log('code exchange status:', this);
                 callback(new Error('Code exchange failed'));
               }
             };
@@ -175,14 +164,12 @@
           setAccessToken = function(token) {
             access_token = token;
             localStorage['access_token'] = token;
-            console.log('Setting access_token: ', access_token);
             callback(null, access_token);
           };
           if (access_token == null) {
             access_token = localStorage['access_token'];
           }
           if (access_token) {
-            console.log(access_token, 'panda');
             callback(null, access_token);
             return;
           }
@@ -192,7 +179,6 @@
           };
           chrome.identity.launchWebAuthFlow(options, function(redirectUri) {
             var matches;
-            console.log('launchWebAuthFlow completed', chrome.runtime.lastError, redirectUri);
             if (chrome.runtime.lastError) {
               callback(new Error(chrome.runtime.lastError));
               return;
@@ -232,7 +218,6 @@
         
         user_info_div = document.querySelector('#user_info');
         
-        console.log(signin_button, revoke_button, user_info_div);
         
         showButton(signin_button);
         getUserInfo(false);

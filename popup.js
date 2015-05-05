@@ -83,7 +83,6 @@
             type: 'get-config',
             config: val
           }, function(data) {
-            console.log(data, 'PANDA');
             if (val === 'disable') {
               $el.siblings('input').attr('disabled', data === 'true');
             }
