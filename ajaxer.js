@@ -2,6 +2,7 @@
 (function() {
   chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
     var query;
+    console.log('hit');
     switch (request.type) {
       case 'user-info':
         gh.xhrWithAuth('GET', 'https://api.github.com/user', true, function(error, status, response) {
@@ -10,6 +11,7 @@
             json = JSON.parse(response);
           }
           if (error || (json != null ? json.errors : void 0)) {
+            console.log(error, json, 'ERROR');
             chrome.browserAction.setIcon({
               path: "github-bad.png"
             });

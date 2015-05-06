@@ -1,9 +1,11 @@
 chrome.runtime.onMessage.addListener (request, sender, sendResponse) ->
+  console.log 'hit'
   switch request.type
     when 'user-info'
       gh.xhrWithAuth 'GET', 'https://api.github.com/user', true, (error, status, response) ->
         json = JSON.parse(response) if response
         if error or json?.errors
+          console.log error, json, 'ERROR'
           chrome.browserAction.setIcon {path:"github-bad.png"}
           gh.revokeToken()
         else

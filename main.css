@@ -49,14 +49,14 @@
 .issues-closed .legend {
   display: inline-block;
   width: 100%;
-  overflow: hidden;
+  overflow: visible;
   white-space: nowrap;
   text-overflow: ellipsis;
   vertical-align: bottom;
 }
 .milestone-breakdown .legend .pie-legend,
 .issues-closed .legend .pie-legend {
-  margin-left: 20px;
+  margin-left: 10px;
   list-style: decimal;
 }
 .milestone-breakdown canvas.canvas,

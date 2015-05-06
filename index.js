@@ -112,8 +112,8 @@
     user_info_div = void 0;
     tokenFetcher = (function() {
       var access_token, clientId, clientSecret, redirectRe, redirectUri;
-      clientId = '11442b0924c8d6a98fb7';
-      clientSecret = 'a1499b1a5780c8a21ed560b839741e803c4cc936';
+      clientId = '4d7be2147641f42a5218';
+      clientSecret = 'd01fbd103a93e0b3bc5913a9234eb1738b55977b';
       redirectUri = chrome.identity.getRedirectURL('provider_cb');
       redirectRe = new RegExp(redirectUri + '[#?](.*)');
       access_token = null;
