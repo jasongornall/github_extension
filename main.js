@@ -127,7 +127,7 @@
       }, (function(_this) {
         return function(data_configs) {
           var created, dayCount, query_issues, t;
-          $('.repository-sidebar > .info').remove();
+          $('.protip > .info').remove();
           if (!Object.keys(data_configs).length) {
             return;
           }
@@ -151,7 +151,7 @@
             if (!(issues_data != null ? (_ref1 = issues_data.items) != null ? _ref1.length : void 0 : void 0)) {
               return;
             }
-            $('.repository-sidebar').append(teacup.render(function() {
+            $('.protip').append(teacup.render(function() {
               return div('.info', function() {
                 h1("information for " + repo);
                 div('.issues-closed animated fadeIn', function() {
@@ -192,7 +192,7 @@
                 });
               });
             }));
-            ctx = $('.repository-sidebar .issues-closed .canvas').get(0).getContext('2d');
+            ctx = $('.protip .issues-closed .canvas').get(0).getContext('2d');
 
             /* breakup issues by user */
             (function() {
@@ -234,7 +234,7 @@
                 legendTemplate: "<ol class=\ \"<%=name.toLowerCase()%>-legend\">\n    <% for (var i=0; i<segments.length; i++){%>\n        <li class=\ \"val_<%=segments[i].fillColor.split('#').join('')%>\" style=\ \"color:<%=segments[i].fillColor%>\" >\n          <span>\n            <%if(segments[i].label){%>\n                <%=segments[i].label%>\n                    <%}%>\n          </span>\n        </li>\n        <%}%>\n</ol>",
                 animateRotate: false
               });
-              $legend = $('.repository-sidebar .issues-closed .legend');
+              $legend = $('.protip .issues-closed .legend');
               $legend.html(myPieChart.generateLegend());
               legendHolder = $legend[0];
               $legend.find('.pie-legend li').on('click', function(e) {
@@ -262,11 +262,11 @@
               helpers.addEvent($legend[0], 'mouseleave', function() {
                 myPieChart.draw();
               });
-              return $('.repository-sidebar .issues-closed .canvas').on('click', function(e) {
+              return $('.protip .issues-closed .canvas').on('click', function(e) {
                 var activePoints, label, _ref3;
                 activePoints = myPieChart.getSegmentsAtEvent(e);
                 label = (_ref3 = activePoints[0]) != null ? _ref3.fillColor.split('#').join('') : void 0;
-                return $(".repository-sidebar .milestone-breakdown .val_" + label).click();
+                return $(".protip .milestone-breakdown .val_" + label).click();
               });
             })();
 
@@ -277,7 +277,7 @@
                 $('.info > .milestone-breakdown').remove();
                 return;
               }
-              ctx = $('.repository-sidebar .milestone-breakdown .canvas').get(0).getContext('2d');
+              ctx = $('.protip .milestone-breakdown .canvas').get(0).getContext('2d');
               milestone_data = [];
               config_data = {};
               config_index = -1;
@@ -312,7 +312,7 @@
                 legendTemplate: "<ol class=\ \"<%=name.toLowerCase()%>-legend\">\n    <% for (var i=0; i<segments.length; i++){%>\n        <li class=\ \"val_<%=segments[i].fillColor.split('#').join('')%>\" style=\ \"color:<%=segments[i].fillColor%>\" >\n          <span>\n            <%if(segments[i].label){%>\n                <%=segments[i].label%>\n                    <%}%>\n          </span>\n        </li>\n        <%}%>\n</ol>",
                 animateRotate: false
               });
-              $legend = $('.repository-sidebar .milestone-breakdown .legend');
+              $legend = $('.protip .milestone-breakdown .legend');
               $legend.html(myPieChart.generateLegend());
               legendHolder = $legend[0];
               $legend.find('.pie-legend li').on('click', function(e) {
@@ -340,11 +340,11 @@
               helpers.addEvent($legend[0], 'mouseleave', function() {
                 myPieChart.draw();
               });
-              return $('.repository-sidebar .milestone-breakdown .canvas').on('click', function(e) {
+              return $('.protip .milestone-breakdown .canvas').on('click', function(e) {
                 var activePoints, label, _ref3;
                 activePoints = myPieChart.getSegmentsAtEvent(e);
                 label = (_ref3 = activePoints[0]) != null ? _ref3.fillColor.split('#').join('') : void 0;
-                return $(".repository-sidebar .milestone-breakdown .val_" + label).click();
+                return $(".protip .milestone-breakdown .val_" + label).click();
               });
             })();
 
@@ -355,7 +355,7 @@
                 $('.info > .label-breakdown').remove();
                 return;
               }
-              ctx = $('.repository-sidebar .label-breakdown .canvas').get(0).getContext('2d');
+              ctx = $('.protip .label-breakdown .canvas').get(0).getContext('2d');
               milestone_data = [];
               config_data = {};
               config_index = -1;
@@ -397,7 +397,7 @@
                 legendTemplate: "<ol class=\ \"<%=name.toLowerCase()%>-legend\">\n    <% for (var i=0; i<segments.length; i++){%>\n        <li class=\ \"val_<%=segments[i].fillColor.split('#').join('')%>\" style=\ \"color:<%=segments[i].fillColor%>\" >\n          <span>\n            <%if(segments[i].label){%>\n                <%=segments[i].label%>\n                    <%}%>\n          </span>\n        </li>\n        <%}%>\n</ol>",
                 animateRotate: false
               });
-              $legend = $('.repository-sidebar .label-breakdown .legend');
+              $legend = $('.protip .label-breakdown .legend');
               $legend.html(myPieChart.generateLegend());
               legendHolder = $legend[0];
               $legend.find('.pie-legend li').on('click', function(e) {
@@ -425,12 +425,12 @@
               helpers.addEvent($legend[0], 'mouseleave', function() {
                 myPieChart.draw();
               });
-              return $('.repository-sidebar .label-breakdown .canvas').on('click', function(e) {
+              return $('.protip .label-breakdown .canvas').on('click', function(e) {
                 var activePoints, _ref5;
                 activePoints = myPieChart.getSegmentsAtEvent(e);
                 console.log(activePoints, '123');
                 label = (_ref5 = activePoints[0]) != null ? _ref5.fillColor.split('#').join('') : void 0;
-                return $(".repository-sidebar .label-breakdown .val_" + label).click();
+                return $(".protip .label-breakdown .val_" + label).click();
               });
             })();
           });
@@ -442,8 +442,8 @@
     old_entry = null;
     url = parseQueryString();
     pathname = new URL(window.location.href).pathname;
-    $('.repository-sidebar .info').remove();
-    $('.repository-sidebar .history').remove();
+    $('.protip .info').remove();
+    $('.protip .history').remove();
     $(".issue-meta .new-comments").remove();
     if (/issues$|\/issues\/assigned\/|pulls$|\/pulls\/assigned\/|\/milestones\//.test(pathname)) {
       if (!((_ref1 = $('#js-issues-search')) != null ? _ref1.length : void 0)) {

@@ -2,30 +2,26 @@
 
 
 
-
-
-.repository-sidebar .history {
-  left: 0px;
-  position: relative;
-  top: 0px;
-  width: 180px;
-  opacity: 0;
-}
-.repository-sidebar h1 {
+.repository-sidebar h1,
+.protip h1 {
   width: auto;
   min-width: inherit;
   font-size: 15px;
   text-align: center;
 
 }
-.repository-sidebar > .info {
-  width: 180px;
+.protip > .info {
+  width: 100%;
   background: rgba(0, 0, 0, 0.1);
   padding-top: 1px;
   margin-top: 40px;
 }
+.protip > .info > div {
+  display: inline-block;
+  vertical-align: top;
+  padding: 5px;
 }
-.repository-sidebar > .info > h1 {
+.protip > .info > h1 {
   color: red;
 }
 .repository-sidebar .history .hist-item {
@@ -40,9 +36,13 @@
   text-overflow: ellipsis;
   vertical-align: bottom;
 }
-.milestone-breakdown,
-.issues-closed {
+
+.repository-sidebar .history {
+  left: 0px;
+  position: relative;
+  top: 0px;
   width: 180px;
+  opacity: 0;
 }
 
 .milestone-breakdown .legend,
@@ -59,7 +59,7 @@
   margin-left: 10px;
   list-style: decimal;
 }
-.repository-sidebar canvas.canvas {
+.protip canvas.canvas {
   cursor: pointer;
 }
 .pie-legend li > span {

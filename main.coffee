@@ -96,7 +96,7 @@ executeContent = ->
       type: 'get-config'
       config: ['user_breakdown','milestone_breakdown', 'label_breakdown']
     }, (data_configs) =>
-      $('.repository-sidebar > .info').remove()
+      $('.protip > .info').remove()
       return unless Object.keys(data_configs).length
       t = new Date()
       dayCount = t.getDay()
@@ -114,7 +114,7 @@ executeContent = ->
         per_page: 1000
       }, (issues_data) ->
         return unless issues_data?.items?.length
-        $('.repository-sidebar').append teacup.render ->
+        $('.protip').append teacup.render ->
           div '.info', ->
             h1 "information for #{repo}"
             div '.issues-closed animated fadeIn', ->
@@ -131,11 +131,10 @@ executeContent = ->
               canvas '.canvas', 'width': '180', 'height': '180'
               div '.legend', -> 'loading...'
 
-        ctx = $('.repository-sidebar .issues-closed .canvas').get(0).getContext('2d')
+        ctx = $('.protip .issues-closed .canvas').get(0).getContext('2d')
 
 
         ### breakup issues by user ###
-
         do ->
           if data_configs['user_breakdown'] isnt 'true'
             $('.info > .issues-closed').remove()
@@ -176,7 +175,7 @@ executeContent = ->
             """
             animateRotate : false
           }
-          $legend = $('.repository-sidebar .issues-closed .legend')
+          $legend = $('.protip .issues-closed .legend')
           $legend.html myPieChart.generateLegend()
           legendHolder = $legend[0]
 
@@ -203,10 +202,10 @@ executeContent = ->
           helpers.addEvent $legend[0], 'mouseleave', ->
             myPieChart.draw()
             return
-          $('.repository-sidebar .issues-closed .canvas').on 'click', (e) ->
+          $('.protip .issues-closed .canvas').on 'click', (e) ->
             activePoints = myPieChart.getSegmentsAtEvent(e)
             label = activePoints[0]?.fillColor.split('#').join('')
-            $(".repository-sidebar .milestone-breakdown .val_#{label}").click()
+            $(".protip .milestone-breakdown .val_#{label}").click()
 
 
         ### breakup issues by Milestone ###
@@ -214,7 +213,7 @@ executeContent = ->
           if data_configs['milestone_breakdown'] isnt 'true'
             $('.info > .milestone-breakdown').remove()
             return
-          ctx = $('.repository-sidebar .milestone-breakdown .canvas').get(0).getContext('2d')
+          ctx = $('.protip .milestone-breakdown .canvas').get(0).getContext('2d')
           milestone_data = []
           config_data = {}
           config_index = -1
@@ -252,7 +251,7 @@ executeContent = ->
             """
             animateRotate : false
           }
-          $legend = $('.repository-sidebar .milestone-breakdown .legend')
+          $legend = $('.protip .milestone-breakdown .legend')
           $legend.html myPieChart.generateLegend()
           legendHolder = $legend[0]
 
@@ -279,17 +278,17 @@ executeContent = ->
           helpers.addEvent $legend[0], 'mouseleave', ->
             myPieChart.draw()
             return
-          $('.repository-sidebar .milestone-breakdown .canvas').on 'click', (e) ->
+          $('.protip .milestone-breakdown .canvas').on 'click', (e) ->
             activePoints = myPieChart.getSegmentsAtEvent(e)
             label = activePoints[0]?.fillColor.split('#').join('')
-            $(".repository-sidebar .milestone-breakdown .val_#{label}").click()
+            $(".protip .milestone-breakdown .val_#{label}").click()
 
         ### breakup issues by Label ###
         do ->
           if data_configs['label_breakdown'] isnt 'true'
             $('.info > .label-breakdown').remove()
             return
-          ctx = $('.repository-sidebar .label-breakdown .canvas').get(0).getContext('2d')
+          ctx = $('.protip .label-breakdown .canvas').get(0).getContext('2d')
           milestone_data = []
           config_data = {}
           config_index = -1
@@ -330,7 +329,7 @@ executeContent = ->
             """
             animateRotate : false
           }
-          $legend = $('.repository-sidebar .label-breakdown .legend')
+          $legend = $('.protip .label-breakdown .legend')
           $legend.html myPieChart.generateLegend()
           legendHolder = $legend[0]
 
@@ -357,11 +356,11 @@ executeContent = ->
           helpers.addEvent $legend[0], 'mouseleave', ->
             myPieChart.draw()
             return
-          $('.repository-sidebar .label-breakdown .canvas').on 'click', (e) ->
+          $('.protip .label-breakdown .canvas').on 'click', (e) ->
             activePoints = myPieChart.getSegmentsAtEvent(e)
             console.log activePoints, '123'
             label = activePoints[0]?.fillColor.split('#').join('')
-            $(".repository-sidebar .label-breakdown .val_#{label}").click()
+            $(".protip .label-breakdown .val_#{label}").click()
 
 
 
@@ -372,8 +371,8 @@ executeContent = ->
   url = parseQueryString()
   pathname = new URL(window.location.href).pathname
 
-  $('.repository-sidebar .info').remove()
-  $('.repository-sidebar .history').remove()
+  $('.protip .info').remove()
+  $('.protip .history').remove()
   $(".issue-meta .new-comments").remove()
   if /issues$|\/issues\/assigned\/|pulls$|\/pulls\/assigned\/|\/milestones\//.test pathname
     return false unless !!$('#js-issues-search')?.length
