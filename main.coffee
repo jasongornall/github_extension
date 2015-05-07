@@ -92,47 +92,47 @@ executeContent = ->
                 a href:url, -> title
 
   injectPieChart = ->
-
-    t = new Date()
-    dayCount = t.getDay()
-    if dayCount is 0
-      dayCount = 7
-    t.setDate t.getDate() - dayCount
-    t.setHours(0,0,0,0)
-    created = t.toISOString().substr(0, 10)
-    query_issues = "closed:>#{created} is:issue"
     chrome.runtime.sendMessage {
-      type: 'search-info'
-      query: query_issues
-      repo:repo
-      page: 1
-      per_page: 1000
-    }, (issues_data) ->
-      return unless issues_data?.items?.length
+      type: 'get-config'
+      config: ['user_breakdown','milestone_breakdown']
+    }, (data_configs) =>
       $('.repository-sidebar > .info').remove()
-      $('.repository-sidebar').append teacup.render ->
-        div '.info', ->
-          h1 "information for #{repo}"
-          div '.issues-closed animated fadeIn', ->
-            h1 '.header', -> "Issues closed this week by user"
-            canvas '.canvas', 'width': '180', 'height': '180'
-            div '.legend', -> 'loading...'
-          div '.milestone-breakdown animated fadeIn', ->
-            h1 '.header', -> "Issues closed this week by Milestone"
-            canvas '.canvas', 'width': '180', 'height': '180'
-            div '.legend', -> 'loading...'
+      return unless Object.keys(data_configs).length
+      t = new Date()
+      dayCount = t.getDay()
+      if dayCount is 0
+        dayCount = 7
+      t.setDate t.getDate() - dayCount
+      t.setHours(0,0,0,0)
+      created = t.toISOString().substr(0, 10)
+      query_issues = "closed:>#{created} is:issue"
+      chrome.runtime.sendMessage {
+        type: 'search-info'
+        query: query_issues
+        repo:repo
+        page: 1
+        per_page: 1000
+      }, (issues_data) ->
+        return unless issues_data?.items?.length
+        $('.repository-sidebar').append teacup.render ->
+          div '.info', ->
+            h1 "information for #{repo}"
+            div '.issues-closed animated fadeIn', ->
+              h1 '.header', -> "Issues closed this week by user"
+              canvas '.canvas', 'width': '180', 'height': '180'
+              div '.legend', -> 'loading...'
+            div '.milestone-breakdown animated fadeIn', ->
+              h1 '.header', -> "Issues closed this week by Milestone"
+              canvas '.canvas', 'width': '180', 'height': '180'
+              div '.legend', -> 'loading...'
 
-      ctx = $('.repository-sidebar .issues-closed .canvas').get(0).getContext('2d')
+        ctx = $('.repository-sidebar .issues-closed .canvas').get(0).getContext('2d')
 
 
-      ### breakup issues by user ###
+        ### breakup issues by user ###
 
-      do ->
-        chrome.runtime.sendMessage {
-          type: 'get-config'
-          config: 'user_breakdown'
-        }, (data) ->
-          if data isnt 'true'
+        do ->
+          if data_configs['user_breakdown'] isnt 'true'
             $('.info > .issues-closed').remove()
             return
           user_data = []
@@ -204,13 +204,9 @@ executeContent = ->
             $(".repository-sidebar .issues-closed .#{label.split(' ').join('_')}").click()
 
 
-      ### breakup issues by Milestone ###
-      do ->
-        chrome.runtime.sendMessage {
-          type: 'get-config'
-          config: 'milestone_breakdown'
-        }, (data) ->
-          if data isnt 'true'
+        ### breakup issues by Milestone ###
+        do ->
+          if data_configs['milestone_breakdown'] isnt 'true'
             $('.info > .milestone-breakdown').remove()
             return
           ctx = $('.repository-sidebar .milestone-breakdown .canvas').get(0).getContext('2d')
