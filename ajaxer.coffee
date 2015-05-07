@@ -11,6 +11,7 @@ chrome.runtime.onMessage.addListener (request, sender, sendResponse) ->
           sendResponse json
 
      when 'search-info'
+      console.log 'search on load'
       query  = "https://api.github.com/search/issues?q=#{request.query}+repo:#{request.repo}&page=#{request.page}&per_page=#{request.per_page}"
       gh.xhrWithAuth 'GET', query, false, (error, status, response) ->
         json = JSON.parse(response) if response
@@ -42,10 +43,16 @@ chrome.runtime.onMessage.addListener (request, sender, sendResponse) ->
         localStorage['nochange'] = 'true'
         localStorage['unread'] = 'true'
         localStorage['user_history'] = 'true'
-        localStorage['user_breakdown'] = 'true'
-        localStorage['milestone_breakdown'] = 'true'
+
+        localStorage['user_breakdown_created'] = 'true'
+        localStorage['milestone_breakdown_created'] = 'true'
+        localStorage['label_breakdown_created'] = 'true'
+
+        localStorage['user_breakdown_closed'] = 'true'
+        localStorage['milestone_breakdown_closed'] = 'true'
+        localStorage['label_breakdown_closed'] = 'true'
+
         localStorage['initialized'] = 'true'
-        localStorage['label_breakdown'] = 'true'
       if Array.isArray request.config
         return_data = {}
         for conf in request.config

@@ -91,10 +91,14 @@ executeContent = ->
               li '.hist-item', ->
                 a href:url, -> title
 
-  injectPieChart = (el = 'info', closed = true)->
+  injectPieChart = (el, closed, next) ->
+    if closed
+      query_base = "closed"
+    else
+      query_base = "created"
     chrome.runtime.sendMessage {
       type: 'get-config'
-      config: ['user_breakdown','milestone_breakdown', 'label_breakdown']
+      config: ["user_breakdown_#{query_base}","milestone_breakdown_#{query_base}", "label_breakdown_#{query_base}"]
     }, (data_configs) =>
       $(".protip > .#{el}").remove()
       return unless Object.keys(data_configs).length
@@ -105,10 +109,6 @@ executeContent = ->
       t.setDate t.getDate() - dayCount
       t.setHours(0,0,0,0)
       created = t.toISOString().substr(0, 10)
-      if closed
-        query_base = "closed"
-      else
-        query_base = "created"
       query_issues = "#{query_base}:>#{created} is:issue"
       chrome.runtime.sendMessage {
         type: 'search-info'
@@ -140,7 +140,7 @@ executeContent = ->
 
         ### breakup issues by user ###
         do ->
-          if data_configs['user_breakdown'] isnt 'true'
+          if data_configs["user_breakdown_#{query_base}"] isnt 'true'
             $(".#{el} > .issues-closed").remove()
             return
           user_data = []
@@ -184,6 +184,7 @@ executeContent = ->
           legendHolder = $legend[0]
 
           $legend.find('.pie-legend li').on 'click', (e) ->
+            console.log 'INSIDE'
             $el = $ e.currentTarget
             assignee = $el.find('span').text().trim()
             if assignee is 'unassigned'
@@ -209,12 +210,12 @@ executeContent = ->
           $(".protip .#{el} .issues-closed .canvas").on 'click', (e) ->
             activePoints = myPieChart.getSegmentsAtEvent(e)
             label = activePoints[0]?.fillColor.split('#').join('')
-            $(".protip .#{el} .milestone-breakdown .val_#{label}").click()
+            $(".protip .#{el} .issues-closed .val_#{label}").click()
 
 
         ### breakup issues by Milestone ###
         do ->
-          if data_configs['milestone_breakdown'] isnt 'true'
+          if data_configs["milestone_breakdown_#{query_base}"] isnt 'true'
             $(".#{el} > .milestone-breakdown").remove()
             return
           ctx = $(".protip .#{el} .milestone-breakdown .canvas").get(0).getContext('2d')
@@ -289,7 +290,7 @@ executeContent = ->
 
         ### breakup issues by Label ###
         do ->
-          if data_configs['label_breakdown'] isnt 'true'
+          if data_configs["label_breakdown_#{query_base}"] isnt 'true'
             $(".#{el} > .label-breakdown").remove()
             return
           ctx = $(".protip .#{el} .label-breakdown .canvas").get(0).getContext('2d')
@@ -366,6 +367,8 @@ executeContent = ->
             label = activePoints[0]?.fillColor.split('#').join('')
             $(".protip .#{el} .label-breakdown .val_#{label}").click()
 
+        next?()
+
 
 
 
@@ -376,7 +379,7 @@ executeContent = ->
   pathname = new URL(window.location.href).pathname
 
   $('.protip .info').remove()
-  $('.protip .history').remove()
+  $('.repository-sidebar .history').remove()
   $(".issue-meta .new-comments").remove()
   if /issues$|\/issues\/assigned\/|pulls$|\/pulls\/assigned\/|\/milestones\//.test pathname
     return false unless !!$('#js-issues-search')?.length
@@ -395,8 +398,8 @@ executeContent = ->
     injectHistory()
     # canvas test
     if /issues$|\/issues\/assigned\/|\/milestones\//.test pathname
-      injectPieChart()
-      injectPieChart('info_2' , false)
+      injectPieChart 'info', true, ->
+        injectPieChart 'info_2' , false
 
     chrome.runtime.sendMessage {
       type: 'search-info'

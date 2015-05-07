@@ -120,19 +120,19 @@
         }));
       });
     };
-    injectPieChart = function(el, closed) {
-      if (el == null) {
-        el = 'info';
-      }
-      if (closed == null) {
-        closed = true;
+    injectPieChart = function(el, closed, next) {
+      var query_base;
+      if (closed) {
+        query_base = "closed";
+      } else {
+        query_base = "created";
       }
       return chrome.runtime.sendMessage({
         type: 'get-config',
-        config: ['user_breakdown', 'milestone_breakdown', 'label_breakdown']
+        config: ["user_breakdown_" + query_base, "milestone_breakdown_" + query_base, "label_breakdown_" + query_base]
       }, (function(_this) {
         return function(data_configs) {
-          var created, dayCount, query_base, query_issues, t;
+          var created, dayCount, query_issues, t;
           $(".protip > ." + el).remove();
           if (!Object.keys(data_configs).length) {
             return;
@@ -145,11 +145,6 @@
           t.setDate(t.getDate() - dayCount);
           t.setHours(0, 0, 0, 0);
           created = t.toISOString().substr(0, 10);
-          if (closed) {
-            query_base = "closed";
-          } else {
-            query_base = "created";
-          }
           query_issues = "" + query_base + ":>" + created + " is:issue";
           return chrome.runtime.sendMessage({
             type: 'search-info',
@@ -208,7 +203,7 @@
             /* breakup issues by user */
             (function() {
               var $legend, config_data, config_index, helpers, item, legendHolder, myPieChart, user_data, user_index, _i, _len, _ref2;
-              if (data_configs['user_breakdown'] !== 'true') {
+              if (data_configs["user_breakdown_" + query_base] !== 'true') {
                 $("." + el + " > .issues-closed").remove();
                 return;
               }
@@ -250,6 +245,7 @@
               legendHolder = $legend[0];
               $legend.find('.pie-legend li').on('click', function(e) {
                 var $el, assignee;
+                console.log('INSIDE');
                 $el = $(e.currentTarget);
                 assignee = $el.find('span').text().trim();
                 if (assignee === 'unassigned') {
@@ -277,14 +273,14 @@
                 var activePoints, label, _ref3;
                 activePoints = myPieChart.getSegmentsAtEvent(e);
                 label = (_ref3 = activePoints[0]) != null ? _ref3.fillColor.split('#').join('') : void 0;
-                return $(".protip ." + el + " .milestone-breakdown .val_" + label).click();
+                return $(".protip ." + el + " .issues-closed .val_" + label).click();
               });
             })();
 
             /* breakup issues by Milestone */
             (function() {
               var $legend, config_data, config_index, helpers, item, legendHolder, milestone_data, milestone_index, myPieChart, _i, _len, _ref2;
-              if (data_configs['milestone_breakdown'] !== 'true') {
+              if (data_configs["milestone_breakdown_" + query_base] !== 'true') {
                 $("." + el + " > .milestone-breakdown").remove();
                 return;
               }
@@ -360,9 +356,9 @@
             })();
 
             /* breakup issues by Label */
-            return (function() {
+            (function() {
               var $legend, config_data, config_index, helpers, item, label, label_index, legendHolder, milestone_data, myPieChart, _i, _j, _len, _len1, _ref2, _ref3, _ref4;
-              if (data_configs['label_breakdown'] !== 'true') {
+              if (data_configs["label_breakdown_" + query_base] !== 'true') {
                 $("." + el + " > .label-breakdown").remove();
                 return;
               }
@@ -444,6 +440,7 @@
                 return $(".protip ." + el + " .label-breakdown .val_" + label).click();
               });
             })();
+            return typeof next === "function" ? next() : void 0;
           });
         };
       })(this));
@@ -454,7 +451,7 @@
     url = parseQueryString();
     pathname = new URL(window.location.href).pathname;
     $('.protip .info').remove();
-    $('.protip .history').remove();
+    $('.repository-sidebar .history').remove();
     $(".issue-meta .new-comments").remove();
     if (/issues$|\/issues\/assigned\/|pulls$|\/pulls\/assigned\/|\/milestones\//.test(pathname)) {
       if (!((_ref1 = $('#js-issues-search')) != null ? _ref1.length : void 0)) {
@@ -472,8 +469,9 @@
       page = url.page || '1';
       injectHistory();
       if (/issues$|\/issues\/assigned\/|\/milestones\//.test(pathname)) {
-        injectPieChart();
-        injectPieChart('info_2', false);
+        injectPieChart('info', true, function() {
+          return injectPieChart('info_2', false);
+        });
       }
       chrome.runtime.sendMessage({
         type: 'search-info',
