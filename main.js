@@ -123,7 +123,7 @@
     injectPieChart = function() {
       return chrome.runtime.sendMessage({
         type: 'get-config',
-        config: ['user_breakdown', 'milestone_breakdown']
+        config: ['user_breakdown', 'milestone_breakdown', 'label_breakdown']
       }, (function(_this) {
         return function(data_configs) {
           var created, dayCount, query_issues, t;
@@ -166,9 +166,21 @@
                     return 'loading...';
                   });
                 });
-                return div('.milestone-breakdown animated fadeIn', function() {
+                div('.milestone-breakdown animated fadeIn', function() {
                   h1('.header', function() {
                     return "Issues closed this week by Milestone";
+                  });
+                  canvas('.canvas', {
+                    'width': '180',
+                    'height': '180'
+                  });
+                  return div('.legend', function() {
+                    return 'loading...';
+                  });
+                });
+                return div('.label-breakdown animated fadeIn', function() {
+                  h1('.header', function() {
+                    return "Issues closed this week by Label";
                   });
                   canvas('.canvas', {
                     'width': '180',
@@ -219,7 +231,7 @@
                 return b.value - a.value;
               });
               myPieChart = new Chart(ctx).Pie(user_data, {
-                legendTemplate: "<ol class=\ \"<%=name.toLowerCase()%>-legend\">\n    <% for (var i=0; i<segments.length; i++){%>\n        <li class=\ \"<%=segments[i].label.split(' ').join('_')%>\" style=\ \"color:<%=segments[i].fillColor%>\" >\n          <span>\n            <%if(segments[i].label){%>\n                <%=segments[i].label%>\n                    <%}%>\n          </span>\n        </li>\n        <%}%>\n</ol>",
+                legendTemplate: "<ol class=\ \"<%=name.toLowerCase()%>-legend\">\n    <% for (var i=0; i<segments.length; i++){%>\n        <li class=\ \"val_<%=segments[i].fillColor.split('#').join('')%>\" style=\ \"color:<%=segments[i].fillColor%>\" >\n          <span>\n            <%if(segments[i].label){%>\n                <%=segments[i].label%>\n                    <%}%>\n          </span>\n        </li>\n        <%}%>\n</ol>",
                 animateRotate: false
               });
               $legend = $('.repository-sidebar .issues-closed .legend');
@@ -253,13 +265,13 @@
               return $('.repository-sidebar .issues-closed .canvas').on('click', function(e) {
                 var activePoints, label, _ref3;
                 activePoints = myPieChart.getSegmentsAtEvent(e);
-                label = (_ref3 = activePoints[0]) != null ? _ref3.label : void 0;
-                return $(".repository-sidebar .issues-closed ." + (label.split(' ').join('_'))).click();
+                label = (_ref3 = activePoints[0]) != null ? _ref3.fillColor.split('#').join('') : void 0;
+                return $(".repository-sidebar .milestone-breakdown .val_" + label).click();
               });
             })();
 
             /* breakup issues by Milestone */
-            return (function() {
+            (function() {
               var $legend, config_data, config_index, helpers, item, legendHolder, milestone_data, milestone_index, myPieChart, _i, _len, _ref2;
               if (data_configs['milestone_breakdown'] !== 'true') {
                 $('.info > .milestone-breakdown').remove();
@@ -287,7 +299,8 @@
                     value: 0,
                     color: window.colors[milestone_index],
                     highlight: window.colors[milestone_index],
-                    label: item.milestone.title
+                    label: item.milestone.title,
+                    id: 'dsadsaads'
                   };
                 }
                 milestone_data[milestone_index].value++;
@@ -296,7 +309,7 @@
                 return b.value - a.value;
               });
               myPieChart = new Chart(ctx).Pie(milestone_data, {
-                legendTemplate: "<ol class=\ \"<%=name.toLowerCase()%>-legend\">\n    <% for (var i=0; i<segments.length; i++){%>\n        <li class=\ \"<%=segments[i].label.split(' ').join('_')%>\" style=\ \"color:<%=segments[i].fillColor%>\" >\n          <span>\n            <%if(segments[i].label){%>\n                <%=segments[i].label%>\n                    <%}%>\n          </span>\n        </li>\n        <%}%>\n</ol>",
+                legendTemplate: "<ol class=\ \"<%=name.toLowerCase()%>-legend\">\n    <% for (var i=0; i<segments.length; i++){%>\n        <li class=\ \"val_<%=segments[i].fillColor.split('#').join('')%>\" style=\ \"color:<%=segments[i].fillColor%>\" >\n          <span>\n            <%if(segments[i].label){%>\n                <%=segments[i].label%>\n                    <%}%>\n          </span>\n        </li>\n        <%}%>\n</ol>",
                 animateRotate: false
               });
               $legend = $('.repository-sidebar .milestone-breakdown .legend');
@@ -330,8 +343,94 @@
               return $('.repository-sidebar .milestone-breakdown .canvas').on('click', function(e) {
                 var activePoints, label, _ref3;
                 activePoints = myPieChart.getSegmentsAtEvent(e);
-                label = (_ref3 = activePoints[0]) != null ? _ref3.label : void 0;
-                return $(".repository-sidebar .milestone-breakdown ." + (label.split(' ').join('_'))).click();
+                label = (_ref3 = activePoints[0]) != null ? _ref3.fillColor.split('#').join('') : void 0;
+                return $(".repository-sidebar .milestone-breakdown .val_" + label).click();
+              });
+            })();
+
+            /* breakup issues by Label */
+            return (function() {
+              var $legend, config_data, config_index, helpers, item, label, label_index, legendHolder, milestone_data, myPieChart, _i, _j, _len, _len1, _ref2, _ref3, _ref4;
+              if (data_configs['label_breakdown'] !== 'true') {
+                $('.info > .label-breakdown').remove();
+                return;
+              }
+              ctx = $('.repository-sidebar .label-breakdown .canvas').get(0).getContext('2d');
+              milestone_data = [];
+              config_data = {};
+              config_index = -1;
+              console.log(issues_data, 'sdaadasasd');
+              _ref2 = issues_data != null ? issues_data.items : void 0;
+              for (_i = 0, _len = _ref2.length; _i < _len; _i++) {
+                item = _ref2[_i];
+                if (!((_ref3 = item.labels) != null ? _ref3.length : void 0)) {
+                  item.labels = [
+                    {
+                      name: 'no label',
+                      color: '000000'
+                    }
+                  ];
+                }
+                _ref4 = item.labels;
+                for (_j = 0, _len1 = _ref4.length; _j < _len1; _j++) {
+                  label = _ref4[_j];
+                  if (config_data[label.name] === void 0) {
+                    config_index++;
+                    config_data[label.name] = config_index;
+                  }
+                  label_index = config_data[label.name];
+                  if (milestone_data[label_index] == null) {
+                    milestone_data[label_index] = {
+                      value: 0,
+                      color: window.colors[label_index],
+                      highlight: window.colors[label_index],
+                      label: label.name
+                    };
+                  }
+                  milestone_data[label_index].value++;
+                }
+              }
+              milestone_data.sort(function(a, b) {
+                return b.value - a.value;
+              });
+              myPieChart = new Chart(ctx).Pie(milestone_data, {
+                legendTemplate: "<ol class=\ \"<%=name.toLowerCase()%>-legend\">\n    <% for (var i=0; i<segments.length; i++){%>\n        <li class=\ \"val_<%=segments[i].fillColor.split('#').join('')%>\" style=\ \"color:<%=segments[i].fillColor%>\" >\n          <span>\n            <%if(segments[i].label){%>\n                <%=segments[i].label%>\n                    <%}%>\n          </span>\n        </li>\n        <%}%>\n</ol>",
+                animateRotate: false
+              });
+              $legend = $('.repository-sidebar .label-breakdown .legend');
+              $legend.html(myPieChart.generateLegend());
+              legendHolder = $legend[0];
+              $legend.find('.pie-legend li').on('click', function(e) {
+                var $el;
+                $el = $(e.currentTarget);
+                label = $el.find('span').text().trim();
+                if (label === 'no label') {
+                  label = 'no:label';
+                } else {
+                  label = "label:\"" + label + "\"";
+                }
+                $('#js-issues-search').val("closed:>" + created + " " + label + " is:issue");
+                return $('#js-issues-search').closest('form').submit();
+              });
+              helpers = Chart.helpers;
+              helpers.each($legend.find('.pie-legend').children(), function(legendNode, index) {
+                helpers.addEvent(legendNode, 'mouseover', function() {
+                  var activeSegment;
+                  activeSegment = myPieChart.segments[index];
+                  activeSegment.save();
+                  myPieChart.showTooltip([activeSegment]);
+                  activeSegment.restore();
+                });
+              });
+              helpers.addEvent($legend[0], 'mouseleave', function() {
+                myPieChart.draw();
+              });
+              return $('.repository-sidebar .label-breakdown .canvas').on('click', function(e) {
+                var activePoints, _ref5;
+                activePoints = myPieChart.getSegmentsAtEvent(e);
+                console.log(activePoints, '123');
+                label = (_ref5 = activePoints[0]) != null ? _ref5.fillColor.split('#').join('') : void 0;
+                return $(".repository-sidebar .label-breakdown .val_" + label).click();
               });
             })();
           });

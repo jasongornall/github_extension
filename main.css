@@ -59,12 +59,10 @@
   margin-left: 10px;
   list-style: decimal;
 }
-.milestone-breakdown canvas.canvas,
-.issues-closed canvas.canvas {
+.repository-sidebar canvas.canvas {
   cursor: pointer;
 }
-.milestone-breakdown .legend .pie-legend li > span,
-.issues-closed .legend .pie-legend li > span {
+.pie-legend li > span {
   cursor: pointer;
 }
 

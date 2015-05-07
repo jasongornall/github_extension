@@ -94,7 +94,7 @@ executeContent = ->
   injectPieChart = ->
     chrome.runtime.sendMessage {
       type: 'get-config'
-      config: ['user_breakdown','milestone_breakdown']
+      config: ['user_breakdown','milestone_breakdown', 'label_breakdown']
     }, (data_configs) =>
       $('.repository-sidebar > .info').remove()
       return unless Object.keys(data_configs).length
@@ -123,6 +123,11 @@ executeContent = ->
               div '.legend', -> 'loading...'
             div '.milestone-breakdown animated fadeIn', ->
               h1 '.header', -> "Issues closed this week by Milestone"
+              canvas '.canvas', 'width': '180', 'height': '180'
+              div '.legend', -> 'loading...'
+
+            div '.label-breakdown animated fadeIn', ->
+              h1 '.header', -> "Issues closed this week by Label"
               canvas '.canvas', 'width': '180', 'height': '180'
               div '.legend', -> 'loading...'
 
@@ -159,7 +164,7 @@ executeContent = ->
             legendTemplate: """
               <ol class=\ "<%=name.toLowerCase()%>-legend\">
                   <% for (var i=0; i<segments.length; i++){%>
-                      <li class=\ "<%=segments[i].label.split(' ').join('_')%>\" style=\ "color:<%=segments[i].fillColor%>\" >
+                      <li class=\ "val_<%=segments[i].fillColor.split('#').join('')%>\" style=\ "color:<%=segments[i].fillColor%>\" >
                         <span>
                           <%if(segments[i].label){%>
                               <%=segments[i].label%>
@@ -200,8 +205,8 @@ executeContent = ->
             return
           $('.repository-sidebar .issues-closed .canvas').on 'click', (e) ->
             activePoints = myPieChart.getSegmentsAtEvent(e)
-            label = activePoints[0]?.label
-            $(".repository-sidebar .issues-closed .#{label.split(' ').join('_')}").click()
+            label = activePoints[0]?.fillColor.split('#').join('')
+            $(".repository-sidebar .milestone-breakdown .val_#{label}").click()
 
 
         ### breakup issues by Milestone ###
@@ -225,6 +230,7 @@ executeContent = ->
               color: window.colors[milestone_index]
               highlight: window.colors[milestone_index]
               label: item.milestone.title
+              id: 'dsadsaads'
             }
             milestone_data[milestone_index].value++
           milestone_data.sort (a, b) ->
@@ -234,7 +240,7 @@ executeContent = ->
             legendTemplate: """
               <ol class=\ "<%=name.toLowerCase()%>-legend\">
                   <% for (var i=0; i<segments.length; i++){%>
-                      <li class=\ "<%=segments[i].label.split(' ').join('_')%>\" style=\ "color:<%=segments[i].fillColor%>\" >
+                      <li class=\ "val_<%=segments[i].fillColor.split('#').join('')%>\" style=\ "color:<%=segments[i].fillColor%>\" >
                         <span>
                           <%if(segments[i].label){%>
                               <%=segments[i].label%>
@@ -275,8 +281,87 @@ executeContent = ->
             return
           $('.repository-sidebar .milestone-breakdown .canvas').on 'click', (e) ->
             activePoints = myPieChart.getSegmentsAtEvent(e)
-            label = activePoints[0]?.label
-            $(".repository-sidebar .milestone-breakdown .#{label.split(' ').join('_')}").click()
+            label = activePoints[0]?.fillColor.split('#').join('')
+            $(".repository-sidebar .milestone-breakdown .val_#{label}").click()
+
+        ### breakup issues by Label ###
+        do ->
+          if data_configs['label_breakdown'] isnt 'true'
+            $('.info > .label-breakdown').remove()
+            return
+          ctx = $('.repository-sidebar .label-breakdown .canvas').get(0).getContext('2d')
+          milestone_data = []
+          config_data = {}
+          config_index = -1
+          console.log issues_data, 'sdaadasasd'
+          for item in issues_data?.items
+            if not item.labels?.length
+              item.labels = [{name:'no label',color:'000000'}]
+
+            for label in item.labels
+              if config_data[label.name] is undefined
+                config_index++
+                config_data[label.name] = config_index
+              label_index = config_data[label.name]
+
+              milestone_data[label_index] ?= {
+                value: 0
+                color: window.colors[label_index]
+                highlight: window.colors[label_index]
+                label: label.name
+              }
+              milestone_data[label_index].value++
+          milestone_data.sort (a, b) ->
+            return b.value - a.value
+
+          myPieChart = new Chart(ctx).Pie milestone_data, {
+            legendTemplate: """
+              <ol class=\ "<%=name.toLowerCase()%>-legend\">
+                  <% for (var i=0; i<segments.length; i++){%>
+                      <li class=\ "val_<%=segments[i].fillColor.split('#').join('')%>\" style=\ "color:<%=segments[i].fillColor%>\" >
+                        <span>
+                          <%if(segments[i].label){%>
+                              <%=segments[i].label%>
+                                  <%}%>
+                        </span>
+                      </li>
+                      <%}%>
+              </ol>
+            """
+            animateRotate : false
+          }
+          $legend = $('.repository-sidebar .label-breakdown .legend')
+          $legend.html myPieChart.generateLegend()
+          legendHolder = $legend[0]
+
+          $legend.find('.pie-legend li').on 'click', (e) ->
+            $el = $ e.currentTarget
+            label = $el.find('span').text().trim()
+            if label is 'no label'
+              label = 'no:label'
+            else
+              label = "label:\"#{label}\""
+            $('#js-issues-search').val("closed:>#{created} #{label} is:issue")
+            $('#js-issues-search').closest('form').submit()
+
+          helpers = Chart.helpers;
+          helpers.each $legend.find('.pie-legend').children(), (legendNode, index) ->
+            helpers.addEvent legendNode, 'mouseover', ->
+
+              activeSegment = myPieChart.segments[index]
+              activeSegment.save()
+              myPieChart.showTooltip [ activeSegment ]
+              activeSegment.restore()
+              return
+            return
+          helpers.addEvent $legend[0], 'mouseleave', ->
+            myPieChart.draw()
+            return
+          $('.repository-sidebar .label-breakdown .canvas').on 'click', (e) ->
+            activePoints = myPieChart.getSegmentsAtEvent(e)
+            console.log activePoints, '123'
+            label = activePoints[0]?.fillColor.split('#').join('')
+            $(".repository-sidebar .label-breakdown .val_#{label}").click()
 
 
 

@@ -45,6 +45,7 @@ chrome.runtime.onMessage.addListener (request, sender, sendResponse) ->
         localStorage['user_breakdown'] = 'true'
         localStorage['milestone_breakdown'] = 'true'
         localStorage['initialized'] = 'true'
+        localStorage['label_breakdown'] = 'true'
       if Array.isArray request.config
         return_data = {}
         for conf in request.config
