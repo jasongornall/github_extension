@@ -10,17 +10,20 @@
   text-align: center;
 
 }
+.protip > .info_2,
 .protip > .info {
   width: 100%;
   background: rgba(0, 0, 0, 0.1);
   padding-top: 1px;
   margin-top: 40px;
 }
+.protip > .info_2 > div,
 .protip > .info > div {
   display: inline-block;
   vertical-align: top;
   padding: 5px;
 }
+.protip > .info_2 > h1,
 .protip > .info > h1 {
   color: red;
 }

@@ -120,14 +120,20 @@
         }));
       });
     };
-    injectPieChart = function() {
+    injectPieChart = function(el, closed) {
+      if (el == null) {
+        el = 'info';
+      }
+      if (closed == null) {
+        closed = true;
+      }
       return chrome.runtime.sendMessage({
         type: 'get-config',
         config: ['user_breakdown', 'milestone_breakdown', 'label_breakdown']
       }, (function(_this) {
         return function(data_configs) {
-          var created, dayCount, query_issues, t;
-          $('.protip > .info').remove();
+          var created, dayCount, query_base, query_issues, t;
+          $(".protip > ." + el).remove();
           if (!Object.keys(data_configs).length) {
             return;
           }
@@ -139,7 +145,12 @@
           t.setDate(t.getDate() - dayCount);
           t.setHours(0, 0, 0, 0);
           created = t.toISOString().substr(0, 10);
-          query_issues = "closed:>" + created + " is:issue";
+          if (closed) {
+            query_base = "closed";
+          } else {
+            query_base = "created";
+          }
+          query_issues = "" + query_base + ":>" + created + " is:issue";
           return chrome.runtime.sendMessage({
             type: 'search-info',
             query: query_issues,
@@ -152,11 +163,11 @@
               return;
             }
             $('.protip').append(teacup.render(function() {
-              return div('.info', function() {
-                h1("information for " + repo);
+              return div("." + el, function() {
+                h1("Issues " + (query_base.toUpperCase()) + " this week for " + repo);
                 div('.issues-closed animated fadeIn', function() {
                   h1('.header', function() {
-                    return "Issues closed this week by user";
+                    return "User Breakdown";
                   });
                   canvas('.canvas', {
                     'width': '180',
@@ -168,7 +179,7 @@
                 });
                 div('.milestone-breakdown animated fadeIn', function() {
                   h1('.header', function() {
-                    return "Issues closed this week by Milestone";
+                    return "Milestone Breakdown";
                   });
                   canvas('.canvas', {
                     'width': '180',
@@ -180,7 +191,7 @@
                 });
                 return div('.label-breakdown animated fadeIn', function() {
                   h1('.header', function() {
-                    return "Issues closed this week by Label";
+                    return "Label Breakdown";
                   });
                   canvas('.canvas', {
                     'width': '180',
@@ -192,13 +203,13 @@
                 });
               });
             }));
-            ctx = $('.protip .issues-closed .canvas').get(0).getContext('2d');
+            ctx = $(".protip ." + el + " .issues-closed .canvas").get(0).getContext('2d');
 
             /* breakup issues by user */
             (function() {
               var $legend, config_data, config_index, helpers, item, legendHolder, myPieChart, user_data, user_index, _i, _len, _ref2;
               if (data_configs['user_breakdown'] !== 'true') {
-                $('.info > .issues-closed').remove();
+                $("." + el + " > .issues-closed").remove();
                 return;
               }
               user_data = [];
@@ -234,7 +245,7 @@
                 legendTemplate: "<ol class=\ \"<%=name.toLowerCase()%>-legend\">\n    <% for (var i=0; i<segments.length; i++){%>\n        <li class=\ \"val_<%=segments[i].fillColor.split('#').join('')%>\" style=\ \"color:<%=segments[i].fillColor%>\" >\n          <span>\n            <%if(segments[i].label){%>\n                <%=segments[i].label%>\n                    <%}%>\n          </span>\n        </li>\n        <%}%>\n</ol>",
                 animateRotate: false
               });
-              $legend = $('.protip .issues-closed .legend');
+              $legend = $(".protip ." + el + " .issues-closed .legend");
               $legend.html(myPieChart.generateLegend());
               legendHolder = $legend[0];
               $legend.find('.pie-legend li').on('click', function(e) {
@@ -246,7 +257,7 @@
                 } else {
                   assignee = "assignee:" + assignee;
                 }
-                $('#js-issues-search').val("closed:>" + created + " " + assignee + " is:issue");
+                $('#js-issues-search').val("" + query_base + ":>" + created + " " + assignee + " is:issue");
                 return $('#js-issues-search').closest('form').submit();
               });
               helpers = Chart.helpers;
@@ -262,11 +273,11 @@
               helpers.addEvent($legend[0], 'mouseleave', function() {
                 myPieChart.draw();
               });
-              return $('.protip .issues-closed .canvas').on('click', function(e) {
+              return $(".protip ." + el + " .issues-closed .canvas").on('click', function(e) {
                 var activePoints, label, _ref3;
                 activePoints = myPieChart.getSegmentsAtEvent(e);
                 label = (_ref3 = activePoints[0]) != null ? _ref3.fillColor.split('#').join('') : void 0;
-                return $(".protip .milestone-breakdown .val_" + label).click();
+                return $(".protip ." + el + " .milestone-breakdown .val_" + label).click();
               });
             })();
 
@@ -274,10 +285,10 @@
             (function() {
               var $legend, config_data, config_index, helpers, item, legendHolder, milestone_data, milestone_index, myPieChart, _i, _len, _ref2;
               if (data_configs['milestone_breakdown'] !== 'true') {
-                $('.info > .milestone-breakdown').remove();
+                $("." + el + " > .milestone-breakdown").remove();
                 return;
               }
-              ctx = $('.protip .milestone-breakdown .canvas').get(0).getContext('2d');
+              ctx = $(".protip ." + el + " .milestone-breakdown .canvas").get(0).getContext('2d');
               milestone_data = [];
               config_data = {};
               config_index = -1;
@@ -312,7 +323,7 @@
                 legendTemplate: "<ol class=\ \"<%=name.toLowerCase()%>-legend\">\n    <% for (var i=0; i<segments.length; i++){%>\n        <li class=\ \"val_<%=segments[i].fillColor.split('#').join('')%>\" style=\ \"color:<%=segments[i].fillColor%>\" >\n          <span>\n            <%if(segments[i].label){%>\n                <%=segments[i].label%>\n                    <%}%>\n          </span>\n        </li>\n        <%}%>\n</ol>",
                 animateRotate: false
               });
-              $legend = $('.protip .milestone-breakdown .legend');
+              $legend = $(".protip ." + el + " .milestone-breakdown .legend");
               $legend.html(myPieChart.generateLegend());
               legendHolder = $legend[0];
               $legend.find('.pie-legend li').on('click', function(e) {
@@ -324,7 +335,7 @@
                 } else {
                   milestone = "milestone:\"" + milestone + "\"";
                 }
-                $('#js-issues-search').val("closed:>" + created + " " + milestone + " is:issue");
+                $('#js-issues-search').val("" + query_base + ":>" + created + " " + milestone + " is:issue");
                 return $('#js-issues-search').closest('form').submit();
               });
               helpers = Chart.helpers;
@@ -340,11 +351,11 @@
               helpers.addEvent($legend[0], 'mouseleave', function() {
                 myPieChart.draw();
               });
-              return $('.protip .milestone-breakdown .canvas').on('click', function(e) {
+              return $(".protip ." + el + " .milestone-breakdown .canvas").on('click', function(e) {
                 var activePoints, label, _ref3;
                 activePoints = myPieChart.getSegmentsAtEvent(e);
                 label = (_ref3 = activePoints[0]) != null ? _ref3.fillColor.split('#').join('') : void 0;
-                return $(".protip .milestone-breakdown .val_" + label).click();
+                return $(".protip ." + el + " .milestone-breakdown .val_" + label).click();
               });
             })();
 
@@ -352,10 +363,10 @@
             return (function() {
               var $legend, config_data, config_index, helpers, item, label, label_index, legendHolder, milestone_data, myPieChart, _i, _j, _len, _len1, _ref2, _ref3, _ref4;
               if (data_configs['label_breakdown'] !== 'true') {
-                $('.info > .label-breakdown').remove();
+                $("." + el + " > .label-breakdown").remove();
                 return;
               }
-              ctx = $('.protip .label-breakdown .canvas').get(0).getContext('2d');
+              ctx = $(".protip ." + el + " .label-breakdown .canvas").get(0).getContext('2d');
               milestone_data = [];
               config_data = {};
               config_index = -1;
@@ -397,7 +408,7 @@
                 legendTemplate: "<ol class=\ \"<%=name.toLowerCase()%>-legend\">\n    <% for (var i=0; i<segments.length; i++){%>\n        <li class=\ \"val_<%=segments[i].fillColor.split('#').join('')%>\" style=\ \"color:<%=segments[i].fillColor%>\" >\n          <span>\n            <%if(segments[i].label){%>\n                <%=segments[i].label%>\n                    <%}%>\n          </span>\n        </li>\n        <%}%>\n</ol>",
                 animateRotate: false
               });
-              $legend = $('.protip .label-breakdown .legend');
+              $legend = $(".protip ." + el + " .label-breakdown .legend");
               $legend.html(myPieChart.generateLegend());
               legendHolder = $legend[0];
               $legend.find('.pie-legend li').on('click', function(e) {
@@ -409,7 +420,7 @@
                 } else {
                   label = "label:\"" + label + "\"";
                 }
-                $('#js-issues-search').val("closed:>" + created + " " + label + " is:issue");
+                $('#js-issues-search').val("" + query_base + ":>" + created + " " + label + " is:issue");
                 return $('#js-issues-search').closest('form').submit();
               });
               helpers = Chart.helpers;
@@ -425,12 +436,12 @@
               helpers.addEvent($legend[0], 'mouseleave', function() {
                 myPieChart.draw();
               });
-              return $('.protip .label-breakdown .canvas').on('click', function(e) {
+              return $(".protip ." + el + " .label-breakdown .canvas").on('click', function(e) {
                 var activePoints, _ref5;
                 activePoints = myPieChart.getSegmentsAtEvent(e);
                 console.log(activePoints, '123');
                 label = (_ref5 = activePoints[0]) != null ? _ref5.fillColor.split('#').join('') : void 0;
-                return $(".protip .label-breakdown .val_" + label).click();
+                return $(".protip ." + el + " .label-breakdown .val_" + label).click();
               });
             })();
           });
@@ -462,6 +473,7 @@
       injectHistory();
       if (/issues$|\/issues\/assigned\/|\/milestones\//.test(pathname)) {
         injectPieChart();
+        injectPieChart('info_2', false);
       }
       chrome.runtime.sendMessage({
         type: 'search-info',

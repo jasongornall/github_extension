@@ -91,12 +91,12 @@ executeContent = ->
               li '.hist-item', ->
                 a href:url, -> title
 
-  injectPieChart = ->
+  injectPieChart = (el = 'info', closed = true)->
     chrome.runtime.sendMessage {
       type: 'get-config'
       config: ['user_breakdown','milestone_breakdown', 'label_breakdown']
     }, (data_configs) =>
-      $('.protip > .info').remove()
+      $(".protip > .#{el}").remove()
       return unless Object.keys(data_configs).length
       t = new Date()
       dayCount = t.getDay()
@@ -105,7 +105,11 @@ executeContent = ->
       t.setDate t.getDate() - dayCount
       t.setHours(0,0,0,0)
       created = t.toISOString().substr(0, 10)
-      query_issues = "closed:>#{created} is:issue"
+      if closed
+        query_base = "closed"
+      else
+        query_base = "created"
+      query_issues = "#{query_base}:>#{created} is:issue"
       chrome.runtime.sendMessage {
         type: 'search-info'
         query: query_issues
@@ -115,29 +119,29 @@ executeContent = ->
       }, (issues_data) ->
         return unless issues_data?.items?.length
         $('.protip').append teacup.render ->
-          div '.info', ->
-            h1 "information for #{repo}"
+          div ".#{el}", ->
+            h1 "Issues #{query_base.toUpperCase()} this week for #{repo}"
             div '.issues-closed animated fadeIn', ->
-              h1 '.header', -> "Issues closed this week by user"
+              h1 '.header', -> "User Breakdown"
               canvas '.canvas', 'width': '180', 'height': '180'
               div '.legend', -> 'loading...'
             div '.milestone-breakdown animated fadeIn', ->
-              h1 '.header', -> "Issues closed this week by Milestone"
+              h1 '.header', -> "Milestone Breakdown"
               canvas '.canvas', 'width': '180', 'height': '180'
               div '.legend', -> 'loading...'
 
             div '.label-breakdown animated fadeIn', ->
-              h1 '.header', -> "Issues closed this week by Label"
+              h1 '.header', -> "Label Breakdown"
               canvas '.canvas', 'width': '180', 'height': '180'
               div '.legend', -> 'loading...'
 
-        ctx = $('.protip .issues-closed .canvas').get(0).getContext('2d')
+        ctx = $(".protip .#{el} .issues-closed .canvas").get(0).getContext('2d')
 
 
         ### breakup issues by user ###
         do ->
           if data_configs['user_breakdown'] isnt 'true'
-            $('.info > .issues-closed').remove()
+            $(".#{el} > .issues-closed").remove()
             return
           user_data = []
           config_data = {}
@@ -175,7 +179,7 @@ executeContent = ->
             """
             animateRotate : false
           }
-          $legend = $('.protip .issues-closed .legend')
+          $legend = $(".protip .#{el} .issues-closed .legend")
           $legend.html myPieChart.generateLegend()
           legendHolder = $legend[0]
 
@@ -186,7 +190,7 @@ executeContent = ->
               assignee = 'no:assignee'
             else
               assignee = "assignee:#{assignee}"
-            $('#js-issues-search').val("closed:>#{created} #{assignee} is:issue")
+            $('#js-issues-search').val("#{query_base}:>#{created} #{assignee} is:issue")
             $('#js-issues-search').closest('form').submit()
 
           helpers = Chart.helpers;
@@ -202,18 +206,18 @@ executeContent = ->
           helpers.addEvent $legend[0], 'mouseleave', ->
             myPieChart.draw()
             return
-          $('.protip .issues-closed .canvas').on 'click', (e) ->
+          $(".protip .#{el} .issues-closed .canvas").on 'click', (e) ->
             activePoints = myPieChart.getSegmentsAtEvent(e)
             label = activePoints[0]?.fillColor.split('#').join('')
-            $(".protip .milestone-breakdown .val_#{label}").click()
+            $(".protip .#{el} .milestone-breakdown .val_#{label}").click()
 
 
         ### breakup issues by Milestone ###
         do ->
           if data_configs['milestone_breakdown'] isnt 'true'
-            $('.info > .milestone-breakdown').remove()
+            $(".#{el} > .milestone-breakdown").remove()
             return
-          ctx = $('.protip .milestone-breakdown .canvas').get(0).getContext('2d')
+          ctx = $(".protip .#{el} .milestone-breakdown .canvas").get(0).getContext('2d')
           milestone_data = []
           config_data = {}
           config_index = -1
@@ -251,7 +255,7 @@ executeContent = ->
             """
             animateRotate : false
           }
-          $legend = $('.protip .milestone-breakdown .legend')
+          $legend = $(".protip .#{el} .milestone-breakdown .legend")
           $legend.html myPieChart.generateLegend()
           legendHolder = $legend[0]
 
@@ -262,7 +266,7 @@ executeContent = ->
               milestone = 'no:milestone'
             else
               milestone = "milestone:\"#{milestone}\""
-            $('#js-issues-search').val("closed:>#{created} #{milestone} is:issue")
+            $('#js-issues-search').val("#{query_base}:>#{created} #{milestone} is:issue")
             $('#js-issues-search').closest('form').submit()
 
           helpers = Chart.helpers;
@@ -278,17 +282,17 @@ executeContent = ->
           helpers.addEvent $legend[0], 'mouseleave', ->
             myPieChart.draw()
             return
-          $('.protip .milestone-breakdown .canvas').on 'click', (e) ->
+          $(".protip .#{el} .milestone-breakdown .canvas").on 'click', (e) ->
             activePoints = myPieChart.getSegmentsAtEvent(e)
             label = activePoints[0]?.fillColor.split('#').join('')
-            $(".protip .milestone-breakdown .val_#{label}").click()
+            $(".protip .#{el} .milestone-breakdown .val_#{label}").click()
 
         ### breakup issues by Label ###
         do ->
           if data_configs['label_breakdown'] isnt 'true'
-            $('.info > .label-breakdown').remove()
+            $(".#{el} > .label-breakdown").remove()
             return
-          ctx = $('.protip .label-breakdown .canvas').get(0).getContext('2d')
+          ctx = $(".protip .#{el} .label-breakdown .canvas").get(0).getContext('2d')
           milestone_data = []
           config_data = {}
           config_index = -1
@@ -329,7 +333,7 @@ executeContent = ->
             """
             animateRotate : false
           }
-          $legend = $('.protip .label-breakdown .legend')
+          $legend = $(".protip .#{el} .label-breakdown .legend")
           $legend.html myPieChart.generateLegend()
           legendHolder = $legend[0]
 
@@ -340,7 +344,7 @@ executeContent = ->
               label = 'no:label'
             else
               label = "label:\"#{label}\""
-            $('#js-issues-search').val("closed:>#{created} #{label} is:issue")
+            $('#js-issues-search').val("#{query_base}:>#{created} #{label} is:issue")
             $('#js-issues-search').closest('form').submit()
 
           helpers = Chart.helpers;
@@ -356,11 +360,11 @@ executeContent = ->
           helpers.addEvent $legend[0], 'mouseleave', ->
             myPieChart.draw()
             return
-          $('.protip .label-breakdown .canvas').on 'click', (e) ->
+          $(".protip .#{el} .label-breakdown .canvas").on 'click', (e) ->
             activePoints = myPieChart.getSegmentsAtEvent(e)
             console.log activePoints, '123'
             label = activePoints[0]?.fillColor.split('#').join('')
-            $(".protip .label-breakdown .val_#{label}").click()
+            $(".protip .#{el} .label-breakdown .val_#{label}").click()
 
 
 
@@ -392,6 +396,7 @@ executeContent = ->
     # canvas test
     if /issues$|\/issues\/assigned\/|\/milestones\//.test pathname
       injectPieChart()
+      injectPieChart('info_2' , false)
 
     chrome.runtime.sendMessage {
       type: 'search-info'
