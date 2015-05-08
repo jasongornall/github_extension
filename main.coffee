@@ -418,9 +418,6 @@ executeContent = ->
 
           if num < comments
             markNew(item.number, comments - num)
-          else if num > comments
-            # stuff got deleted
-            localStorage[item.html_url] = comments
           else
             markSame item.number
 

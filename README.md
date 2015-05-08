@@ -1,6 +1,6 @@
 <a target="_blank" href="https://chrome.google.com/webstore/detail/laolmfhjaobpboigjfbclcphckmjodlp">![Try it now in CWS](https://raw.github.com/GoogleChrome/chrome-app-samples/master/tryitnowbutton.png "Click here to install this sample from the Chrome Web Store")</a>
 
-
+test
 # GitHub Auth
 
 A sample application that uses the
@@ -19,7 +19,7 @@ Account check out the [Identity sample application](../identity).
 * [Runtime](https://developer.chrome.com/apps/app.runtime.html)
 * [Window](https://developer.chrome.com/apps/app.window.html)
 
-     
+
 ## Screenshot
 ![screenshot](/samples/github-auth/assets/screenshot_1280_800.png)
 
