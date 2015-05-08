@@ -493,8 +493,6 @@
           num = parseInt(localStorage[item.html_url]);
           if (num < comments) {
             _results.push(markNew(item.number, comments - num));
-          } else if (num > comments) {
-            _results.push(localStorage[item.html_url] = comments);
           } else {
             _results.push(markSame(item.number));
           }
