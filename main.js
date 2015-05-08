@@ -159,7 +159,8 @@
             }
             $('.protip').append(teacup.render(function() {
               return div("." + el, function() {
-                h1("Issues " + (query_base.toUpperCase()) + " this week for " + repo);
+                var _ref2;
+                h1("" + (issues_data != null ? (_ref2 = issues_data.items) != null ? _ref2.length : void 0 : void 0) + " Issues " + (query_base.toUpperCase()) + " this week for " + repo);
                 div('.issues-closed animated fadeIn', function() {
                   h1('.header', function() {
                     return "User Breakdown";

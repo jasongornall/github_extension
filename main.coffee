@@ -120,7 +120,7 @@ executeContent = ->
         return unless issues_data?.items?.length
         $('.protip').append teacup.render ->
           div ".#{el}", ->
-            h1 "Issues #{query_base.toUpperCase()} this week for #{repo}"
+            h1 "#{issues_data?.items?.length} Issues #{query_base.toUpperCase()} this week for #{repo}"
             div '.issues-closed animated fadeIn', ->
               h1 '.header', -> "User Breakdown"
               canvas '.canvas', 'width': '180', 'height': '180'
