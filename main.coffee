@@ -315,7 +315,7 @@ executeContent = ->
       return unless Object.keys(data_configs).length
       t = new Date()
       dayCount = t.getDay()
-      dayCount = 7
+      # dayCount = 7
       if dayCount is 0
         dayCount = 7
       t.setDate t.getDate() - dayCount
@@ -329,7 +329,7 @@ executeContent = ->
         page: 1
         per_page: 1000
       }, (issues_data) ->
-        return unless issues_data?.items?.length
+        return next {} unless issues_data?.items?.length
         $('.protip').append teacup.render ->
           div ".#{el}", ->
             h1 "#{issues_data?.items?.length} Issues #{query_base.toUpperCase()} this week for #{repo}"
@@ -587,6 +587,8 @@ executeContent = ->
   pathname = new URL(window.location.href).pathname
 
   $('.protip .info').remove()
+  $('.protip .info_2').remove()
+  $('.protip .info_3').remove()
   $('.repository-sidebar .history').remove()
   $(".issue-meta .new-comments").remove()
   if /issues$|\/issues\/assigned\/|pulls$|\/pulls\/assigned\/|\/milestones\//.test pathname

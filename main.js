@@ -333,7 +333,6 @@
           }
           t = new Date();
           dayCount = t.getDay();
-          dayCount = 7;
           if (dayCount === 0) {
             dayCount = 7;
           }
@@ -350,7 +349,7 @@
           }, function(issues_data) {
             var ctx, _ref1;
             if (!(issues_data != null ? (_ref1 = issues_data.items) != null ? _ref1.length : void 0 : void 0)) {
-              return;
+              return next({});
             }
             $('.protip').append(teacup.render(function() {
               return div("." + el, function() {
@@ -643,6 +642,8 @@
     url = parseQueryString();
     pathname = new URL(window.location.href).pathname;
     $('.protip .info').remove();
+    $('.protip .info_2').remove();
+    $('.protip .info_3').remove();
     $('.repository-sidebar .history').remove();
     $(".issue-meta .new-comments").remove();
     if (/issues$|\/issues\/assigned\/|pulls$|\/pulls\/assigned\/|\/milestones\//.test(pathname)) {
