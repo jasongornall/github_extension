@@ -282,7 +282,7 @@ executeContent = ->
           if not chart_data.datasets[user]
             color = hexToRgb window.colors[color_index]
             chart_data.datasets[user] = {
-              label: "Issues Opened Opened By #{user}",
+              label: "#{user}",
               fillColor: "rgba(#{color.r},#{color.g},#{color.b},0.2)",
               strokeColor: "rgba(#{color.r},#{color.g},#{color.b},1)",
               pointColor: "rgba(#{color.r},#{color.g},#{color.b},1)",
@@ -293,6 +293,7 @@ executeContent = ->
             }
             color_index++
           chart_data.datasets[user].data[day]++
+
 
 
 
@@ -316,6 +317,10 @@ executeContent = ->
         }
         $legend = $(".protip .#{el} .user-opened .legend")
         $legend.html myPieChart.generateLegend()
+        $(".protip .#{el} .user-opened .canvas").click (e) ->
+          activeBars = myPieChart.getBarsAtEvent(e)
+          console.log activeBars[0]
+          return
   injectPieChart = (el, closed, next) ->
     if closed
       query_base = "closed"

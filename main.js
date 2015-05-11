@@ -312,7 +312,7 @@
               if (!chart_data.datasets[user]) {
                 color = hexToRgb(window.colors[color_index]);
                 chart_data.datasets[user] = {
-                  label: "Issues Opened Opened By " + user,
+                  label: "" + user,
                   fillColor: "rgba(" + color.r + "," + color.g + "," + color.b + ",0.2)",
                   strokeColor: "rgba(" + color.r + "," + color.g + "," + color.b + ",1)",
                   pointColor: "rgba(" + color.r + "," + color.g + "," + color.b + ",1)",
@@ -331,7 +331,12 @@
               legendTemplate: "<div class=\ \"<%=name.toLowerCase()%>-legend\">\n  <% for (var i=0; i<datasets.length; i++){%>\n      <div style=\ \"background-color:<%=datasets[i].fillColor%>;border: 1px solid <%=datasets[i].strokeColor%>;padding:1px;\">\n        <%if(datasets[i].label){%>\n            <%=datasets[i].label%>\n        <%}%>\n      </div>\n  <%}%>\n</div>"
             });
             $legend = $(".protip ." + el + " .user-opened .legend");
-            return $legend.html(myPieChart.generateLegend());
+            $legend.html(myPieChart.generateLegend());
+            return $(".protip ." + el + " .user-opened .canvas").click(function(e) {
+              var activeBars;
+              activeBars = myPieChart.getBarsAtEvent(e);
+              console.log(activeBars[0]);
+            });
           })();
         };
       })(this));
