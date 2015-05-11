@@ -100,208 +100,222 @@ executeContent = ->
                 a href:url, -> title
 
   injectBarGraph = (el, data) ->
-    $('.protip').append teacup.render ->
-      div ".#{el}", ->
-        h1 "Weekly Breakdown"
-        div '.total-issues', ->
-          h1 '.header', -> "Total Issues Closed/Opened"
-          canvas '.canvas', 'width': '920', 'height': '180'
-          div '.legend'
-        div '.user-closed', ->
-          h1 '.header', -> "User Issues Closed"
-          canvas '.canvas', 'width': '920', 'height': '180'
-          div '.legend'
-        div '.user-opened', ->
-          h1 '.header', -> "User Issues Opened"
-          canvas '.canvas', 'width': '920', 'height': '180'
-          div '.legend'
+    chrome.runtime.sendMessage {
+      type: 'get-config'
+      config: ["user_total_open","user_total_closed", "weekly_total"]
+    }, (data_configs) =>
+      return unless Object.keys(data_configs).length
+      $('.protip').append teacup.render ->
+        div ".#{el}", ->
+          h1 "Weekly Breakdown"
+          div '.total-issues', ->
+            h1 '.header', -> "Total Issues Closed/Opened"
+            canvas '.canvas', 'width': '920', 'height': '180'
+            div '.legend'
+          div '.user-closed', ->
+            h1 '.header', -> "User Issues Closed"
+            canvas '.canvas', 'width': '920', 'height': '180'
+            div '.legend'
+          div '.user-opened', ->
+            h1 '.header', -> "User Issues Opened"
+            canvas '.canvas', 'width': '920', 'height': '180'
+            div '.legend'
 
 
-    do ->
-      ctx = $(".protip .#{el} .total-issues .canvas").get(0).getContext('2d')
+      do ->
+        if data_configs?.weekly_total != 'true'
+          $(".protip .#{el} .total-issues").remove()
+          return
+        ctx = $(".protip .#{el} .total-issues .canvas").get(0).getContext('2d')
 
-      {closed, open} = data
+        {closed, open} = data
 
-      chart_data = {
-        labels: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
-        datasets: [
-            {
-                label: "Issues Opened",
-                fillColor: "rgba(220,220,220,0.2)",
-                strokeColor: "rgba(220,220,220,1)",
-                pointColor: "rgba(220,220,220,1)",
-                pointStrokeColor: "#fff",
-                pointHighlightFill: "#fff",
-                pointHighlightStroke: "rgba(220,220,220,1)",
-                data: [0, 0, 0, 0, 0, 0, 0]
-            },
-            {
-                label: "Issues Closed",
-                fillColor: "rgba(151,187,205,0.2)",
-                strokeColor: "rgba(151,187,205,1)",
-                pointColor: "rgba(151,187,205,1)",
-                pointStrokeColor: "#fff",
-                pointHighlightFill: "#fff",
-                pointHighlightStroke: "rgba(151,187,205,1)",
-                data: [0, 0, 0, 0, 0, 0, 0]
+        chart_data = {
+          labels: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
+          datasets: [
+              {
+                  label: "Issues Opened",
+                  fillColor: "rgba(220,220,220,0.2)",
+                  strokeColor: "rgba(220,220,220,1)",
+                  pointColor: "rgba(220,220,220,1)",
+                  pointStrokeColor: "#fff",
+                  pointHighlightFill: "#fff",
+                  pointHighlightStroke: "rgba(220,220,220,1)",
+                  data: [0, 0, 0, 0, 0, 0, 0]
+              },
+              {
+                  label: "Issues Closed",
+                  fillColor: "rgba(151,187,205,0.2)",
+                  strokeColor: "rgba(151,187,205,1)",
+                  pointColor: "rgba(151,187,205,1)",
+                  pointStrokeColor: "#fff",
+                  pointHighlightFill: "#fff",
+                  pointHighlightStroke: "rgba(151,187,205,1)",
+                  data: [0, 0, 0, 0, 0, 0, 0]
+              }
+          ]
+        }
+
+        for item in open?.items or []
+          date = new Date item.created_at
+          day = date.getDay()
+          day--
+          if day is -1
+            day = 6
+
+          chart_data.datasets[0].data[day]++
+
+        for item in closed?.items or []
+          date = new Date item.closed_at
+          day = date.getDay()
+          day--
+          if day is -1
+            day = 6
+
+          console.log day, date, 'apple'
+          chart_data.datasets[1].data[day]++
+
+        myPieChart = new Chart(ctx).Bar chart_data, {
+
+              legendTemplate : """
+                <ul class=\ "<%=name.toLowerCase()%>-legend\">
+                  <% for (var i=0; i<datasets.length; i++){%>
+                    <div style=\ "background-color:<%=datasets[i].fillColor%>;border: 1px solid <%=datasets[i].strokeColor%>;padding:1px;\">
+                      <%if(datasets[i].label){%>
+                          <%=datasets[i].label%>
+                      <%}%>
+                    </div>
+                  <%}%>
+                </ul>
+              """
+
+
+
+        }
+
+        $legend = $(".protip .#{el} .total-issues .legend")
+        $legend.html myPieChart.generateLegend()
+
+      do ->
+        if data_configs?.user_total_closed != 'true'
+          $(".protip .#{el} .user-closed").remove()
+          return
+        ctx = $(".protip .#{el} .user-closed .canvas").get(0).getContext('2d')
+
+        {closed} = data
+
+        chart_data = {
+          labels: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
+          datasets: {
+          }
+        }
+
+
+        color_index = 0
+        for item in closed?.items or []
+          date = new Date item.closed_at
+          day = date.getDay()
+          day--
+          if day is -1
+            day = 6
+
+          user = item.assignee?.login or 'unassigned'
+          if not chart_data.datasets[user]
+            color = hexToRgb window.colors[color_index]
+            chart_data.datasets[user] = {
+              label: "Issues Closed for #{user}",
+              fillColor: "rgba(#{color.r},#{color.g},#{color.b},0.2)",
+              strokeColor: "rgba(#{color.r},#{color.g},#{color.b},1)",
+              pointColor: "rgba(#{color.r},#{color.g},#{color.b},1)",
+              pointStrokeColor: "rgba(#{color.r},#{color.g},#{color.b},1)",
+              pointHighlightFill: "#fff",
+              pointHighlightStroke: "rgba(151,187,205,1)",
+              data: [0, 0, 0, 0, 0, 0, 0]
             }
-        ]
-      }
-
-      for item in open?.items or []
-        date = new Date item.created_at
-        day = date.getDay()
-        day--
-        if day is -1
-          day = 6
-
-        chart_data.datasets[0].data[day]++
-
-      for item in closed?.items or []
-        date = new Date item.closed_at
-        day = date.getDay()
-        day--
-        if day is -1
-          day = 6
-
-        console.log day, date, 'apple'
-        chart_data.datasets[1].data[day]++
-
-      myPieChart = new Chart(ctx).Bar chart_data, {
-
-            legendTemplate : """
-              <ul class=\ "<%=name.toLowerCase()%>-legend\">
-                <% for (var i=0; i<datasets.length; i++){%>
-                  <div style=\ "background-color:<%=datasets[i].fillColor%>;border: 1px solid <%=datasets[i].strokeColor%>;padding:1px;\">
-                    <%if(datasets[i].label){%>
-                        <%=datasets[i].label%>
-                    <%}%>
-                  </div>
-                <%}%>
-              </ul>
-            """
+            color_index++
+          chart_data.datasets[user].data[day]++
 
 
 
-      }
-
-      $legend = $(".protip .#{el} .total-issues .legend")
-      $legend.html myPieChart.generateLegend()
-
-    do ->
-      ctx = $(".protip .#{el} .user-closed .canvas").get(0).getContext('2d')
-
-      {closed} = data
-
-      chart_data = {
-        labels: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
-        datasets: {
+        myPieChart = new Chart(ctx).Bar chart_data, {
+              showTooltips: false
+              pointDot : false
+              legendTemplate : """
+                <div class=\ "<%=name.toLowerCase()%>-legend\">
+                  <% for (var i=0; i<datasets.length; i++){%>
+                      <div style=\ "background-color:<%=datasets[i].fillColor%>;border: 1px solid <%=datasets[i].strokeColor%>;padding:1px;\">
+                        <%if(datasets[i].label){%>
+                            <%=datasets[i].label%>
+                        <%}%>
+                      </div>
+                  <%}%>
+                </div>
+              """
         }
-      }
 
+        $legend = $(".protip .#{el} .user-closed .legend")
+        $legend.html myPieChart.generateLegend()
+      do ->
+        if data_configs?.user_total_open != 'true'
+          $(".protip .#{el} .user-opened").remove()
+          return
+        ctx = $(".protip .#{el} .user-opened .canvas").get(0).getContext('2d')
 
-      color_index = 0
-      for item in closed?.items or []
-        date = new Date item.closed_at
-        day = date.getDay()
-        day--
-        if day is -1
-          day = 6
+        {open} = data
 
-        user = item.assignee?.login or 'unassigned'
-        if not chart_data.datasets[user]
-          color = hexToRgb window.colors[color_index]
-          chart_data.datasets[user] = {
-            label: "Issues Closed for #{user}",
-            fillColor: "rgba(#{color.r},#{color.g},#{color.b},0.2)",
-            strokeColor: "rgba(#{color.r},#{color.g},#{color.b},1)",
-            pointColor: "rgba(#{color.r},#{color.g},#{color.b},1)",
-            pointStrokeColor: "rgba(#{color.r},#{color.g},#{color.b},1)",
-            pointHighlightFill: "#fff",
-            pointHighlightStroke: "rgba(151,187,205,1)",
-            data: [0, 0, 0, 0, 0, 0, 0]
+        chart_data = {
+          labels: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
+          datasets: {
           }
-          color_index++
-        chart_data.datasets[user].data[day]++
-
-
-
-      myPieChart = new Chart(ctx).Bar chart_data, {
-            showTooltips: false
-            pointDot : false
-            legendTemplate : """
-              <div class=\ "<%=name.toLowerCase()%>-legend\">
-                <% for (var i=0; i<datasets.length; i++){%>
-                    <div style=\ "background-color:<%=datasets[i].fillColor%>;border: 1px solid <%=datasets[i].strokeColor%>;padding:1px;\">
-                      <%if(datasets[i].label){%>
-                          <%=datasets[i].label%>
-                      <%}%>
-                    </div>
-                <%}%>
-              </div>
-            """
-      }
-
-      $legend = $(".protip .#{el} .user-closed .legend")
-      $legend.html myPieChart.generateLegend()
-    do ->
-      ctx = $(".protip .#{el} .user-opened .canvas").get(0).getContext('2d')
-
-      {open} = data
-
-      chart_data = {
-        labels: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
-        datasets: {
         }
-      }
 
 
-      color_index = 0
-      for item in open?.items or []
-        date = new Date item.created_at
-        day = date.getDay()
-        day--
-        if day is -1
-          day = 6
+        color_index = 0
+        for item in open?.items or []
+          date = new Date item.created_at
+          day = date.getDay()
+          day--
+          if day is -1
+            day = 6
 
-        user = item.assignee?.login or 'unassigned'
-        if not chart_data.datasets[user]
-          color = hexToRgb window.colors[color_index]
-          chart_data.datasets[user] = {
-            label: "Issues Opened Opened By #{user}",
-            fillColor: "rgba(#{color.r},#{color.g},#{color.b},0.2)",
-            strokeColor: "rgba(#{color.r},#{color.g},#{color.b},1)",
-            pointColor: "rgba(#{color.r},#{color.g},#{color.b},1)",
-            pointStrokeColor: "rgba(#{color.r},#{color.g},#{color.b},1)",
-            pointHighlightFill: "#fff",
-            pointHighlightStroke: "rgba(151,187,205,1)",
-            data: [0, 0, 0, 0, 0, 0, 0]
-          }
-          color_index++
-        chart_data.datasets[user].data[day]++
-
-
-
-      myPieChart = new Chart(ctx).Bar chart_data, {
-            showTooltips: false
-            pointDot : false
-            legendTemplate : """
-              <div class=\ "<%=name.toLowerCase()%>-legend\">
-                <% for (var i=0; i<datasets.length; i++){%>
-                    <div style=\ "background-color:<%=datasets[i].fillColor%>;border: 1px solid <%=datasets[i].strokeColor%>;padding:1px;\">
-                      <%if(datasets[i].label){%>
-                          <%=datasets[i].label%>
-                      <%}%>
-                    </div>
-                <%}%>
-              </div>
-            """
+          user = item.assignee?.login or 'unassigned'
+          if not chart_data.datasets[user]
+            color = hexToRgb window.colors[color_index]
+            chart_data.datasets[user] = {
+              label: "Issues Opened Opened By #{user}",
+              fillColor: "rgba(#{color.r},#{color.g},#{color.b},0.2)",
+              strokeColor: "rgba(#{color.r},#{color.g},#{color.b},1)",
+              pointColor: "rgba(#{color.r},#{color.g},#{color.b},1)",
+              pointStrokeColor: "rgba(#{color.r},#{color.g},#{color.b},1)",
+              pointHighlightFill: "#fff",
+              pointHighlightStroke: "rgba(151,187,205,1)",
+              data: [0, 0, 0, 0, 0, 0, 0]
+            }
+            color_index++
+          chart_data.datasets[user].data[day]++
 
 
 
-      }
-      $legend = $(".protip .#{el} .user-opened .legend")
-      $legend.html myPieChart.generateLegend()
+        myPieChart = new Chart(ctx).Bar chart_data, {
+              showTooltips: false
+              pointDot : false
+              legendTemplate : """
+                <div class=\ "<%=name.toLowerCase()%>-legend\">
+                  <% for (var i=0; i<datasets.length; i++){%>
+                      <div style=\ "background-color:<%=datasets[i].fillColor%>;border: 1px solid <%=datasets[i].strokeColor%>;padding:1px;\">
+                        <%if(datasets[i].label){%>
+                            <%=datasets[i].label%>
+                        <%}%>
+                      </div>
+                  <%}%>
+                </div>
+              """
+
+
+
+        }
+        $legend = $(".protip .#{el} .user-opened .legend")
+        $legend.html myPieChart.generateLegend()
   injectPieChart = (el, closed, next) ->
     if closed
       query_base = "closed"

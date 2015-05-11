@@ -135,184 +135,206 @@
       });
     };
     injectBarGraph = function(el, data) {
-      $('.protip').append(teacup.render(function() {
-        return div("." + el, function() {
-          h1("Weekly Breakdown");
-          div('.total-issues', function() {
-            h1('.header', function() {
-              return "Total Issues Closed/Opened";
+      return chrome.runtime.sendMessage({
+        type: 'get-config',
+        config: ["user_total_open", "user_total_closed", "weekly_total"]
+      }, (function(_this) {
+        return function(data_configs) {
+          if (!Object.keys(data_configs).length) {
+            return;
+          }
+          $('.protip').append(teacup.render(function() {
+            return div("." + el, function() {
+              h1("Weekly Breakdown");
+              div('.total-issues', function() {
+                h1('.header', function() {
+                  return "Total Issues Closed/Opened";
+                });
+                canvas('.canvas', {
+                  'width': '920',
+                  'height': '180'
+                });
+                return div('.legend');
+              });
+              div('.user-closed', function() {
+                h1('.header', function() {
+                  return "User Issues Closed";
+                });
+                canvas('.canvas', {
+                  'width': '920',
+                  'height': '180'
+                });
+                return div('.legend');
+              });
+              return div('.user-opened', function() {
+                h1('.header', function() {
+                  return "User Issues Opened";
+                });
+                canvas('.canvas', {
+                  'width': '920',
+                  'height': '180'
+                });
+                return div('.legend');
+              });
             });
-            canvas('.canvas', {
-              'width': '920',
-              'height': '180'
-            });
-            return div('.legend');
-          });
-          div('.user-closed', function() {
-            h1('.header', function() {
-              return "User Issues Closed";
-            });
-            canvas('.canvas', {
-              'width': '920',
-              'height': '180'
-            });
-            return div('.legend');
-          });
-          return div('.user-opened', function() {
-            h1('.header', function() {
-              return "User Issues Opened";
-            });
-            canvas('.canvas', {
-              'width': '920',
-              'height': '180'
-            });
-            return div('.legend');
-          });
-        });
-      }));
-      (function() {
-        var $legend, chart_data, closed, ctx, date, day, item, myPieChart, open, _i, _j, _len, _len1, _ref1, _ref2;
-        ctx = $(".protip ." + el + " .total-issues .canvas").get(0).getContext('2d');
-        closed = data.closed, open = data.open;
-        chart_data = {
-          labels: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
-          datasets: [
-            {
-              label: "Issues Opened",
-              fillColor: "rgba(220,220,220,0.2)",
-              strokeColor: "rgba(220,220,220,1)",
-              pointColor: "rgba(220,220,220,1)",
-              pointStrokeColor: "#fff",
-              pointHighlightFill: "#fff",
-              pointHighlightStroke: "rgba(220,220,220,1)",
-              data: [0, 0, 0, 0, 0, 0, 0]
-            }, {
-              label: "Issues Closed",
-              fillColor: "rgba(151,187,205,0.2)",
-              strokeColor: "rgba(151,187,205,1)",
-              pointColor: "rgba(151,187,205,1)",
-              pointStrokeColor: "#fff",
-              pointHighlightFill: "#fff",
-              pointHighlightStroke: "rgba(151,187,205,1)",
-              data: [0, 0, 0, 0, 0, 0, 0]
+          }));
+          (function() {
+            var $legend, chart_data, closed, ctx, date, day, item, myPieChart, open, _i, _j, _len, _len1, _ref1, _ref2;
+            if ((data_configs != null ? data_configs.weekly_total : void 0) !== 'true') {
+              $(".protip ." + el + " .total-issues").remove();
+              return;
             }
-          ]
-        };
-        _ref1 = (open != null ? open.items : void 0) || [];
-        for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
-          item = _ref1[_i];
-          date = new Date(item.created_at);
-          day = date.getDay();
-          day--;
-          if (day === -1) {
-            day = 6;
-          }
-          chart_data.datasets[0].data[day]++;
-        }
-        _ref2 = (closed != null ? closed.items : void 0) || [];
-        for (_j = 0, _len1 = _ref2.length; _j < _len1; _j++) {
-          item = _ref2[_j];
-          date = new Date(item.closed_at);
-          day = date.getDay();
-          day--;
-          if (day === -1) {
-            day = 6;
-          }
-          console.log(day, date, 'apple');
-          chart_data.datasets[1].data[day]++;
-        }
-        myPieChart = new Chart(ctx).Bar(chart_data, {
-          legendTemplate: "<ul class=\ \"<%=name.toLowerCase()%>-legend\">\n  <% for (var i=0; i<datasets.length; i++){%>\n    <div style=\ \"background-color:<%=datasets[i].fillColor%>;border: 1px solid <%=datasets[i].strokeColor%>;padding:1px;\">\n      <%if(datasets[i].label){%>\n          <%=datasets[i].label%>\n      <%}%>\n    </div>\n  <%}%>\n</ul>"
-        });
-        $legend = $(".protip ." + el + " .total-issues .legend");
-        return $legend.html(myPieChart.generateLegend());
-      })();
-      (function() {
-        var $legend, chart_data, closed, color, color_index, ctx, date, day, item, myPieChart, user, _i, _len, _ref1, _ref2;
-        ctx = $(".protip ." + el + " .user-closed .canvas").get(0).getContext('2d');
-        closed = data.closed;
-        chart_data = {
-          labels: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
-          datasets: {}
-        };
-        color_index = 0;
-        _ref1 = (closed != null ? closed.items : void 0) || [];
-        for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
-          item = _ref1[_i];
-          date = new Date(item.closed_at);
-          day = date.getDay();
-          day--;
-          if (day === -1) {
-            day = 6;
-          }
-          user = ((_ref2 = item.assignee) != null ? _ref2.login : void 0) || 'unassigned';
-          if (!chart_data.datasets[user]) {
-            color = hexToRgb(window.colors[color_index]);
-            chart_data.datasets[user] = {
-              label: "Issues Closed for " + user,
-              fillColor: "rgba(" + color.r + "," + color.g + "," + color.b + ",0.2)",
-              strokeColor: "rgba(" + color.r + "," + color.g + "," + color.b + ",1)",
-              pointColor: "rgba(" + color.r + "," + color.g + "," + color.b + ",1)",
-              pointStrokeColor: "rgba(" + color.r + "," + color.g + "," + color.b + ",1)",
-              pointHighlightFill: "#fff",
-              pointHighlightStroke: "rgba(151,187,205,1)",
-              data: [0, 0, 0, 0, 0, 0, 0]
+            ctx = $(".protip ." + el + " .total-issues .canvas").get(0).getContext('2d');
+            closed = data.closed, open = data.open;
+            chart_data = {
+              labels: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
+              datasets: [
+                {
+                  label: "Issues Opened",
+                  fillColor: "rgba(220,220,220,0.2)",
+                  strokeColor: "rgba(220,220,220,1)",
+                  pointColor: "rgba(220,220,220,1)",
+                  pointStrokeColor: "#fff",
+                  pointHighlightFill: "#fff",
+                  pointHighlightStroke: "rgba(220,220,220,1)",
+                  data: [0, 0, 0, 0, 0, 0, 0]
+                }, {
+                  label: "Issues Closed",
+                  fillColor: "rgba(151,187,205,0.2)",
+                  strokeColor: "rgba(151,187,205,1)",
+                  pointColor: "rgba(151,187,205,1)",
+                  pointStrokeColor: "#fff",
+                  pointHighlightFill: "#fff",
+                  pointHighlightStroke: "rgba(151,187,205,1)",
+                  data: [0, 0, 0, 0, 0, 0, 0]
+                }
+              ]
             };
-            color_index++;
-          }
-          chart_data.datasets[user].data[day]++;
-        }
-        myPieChart = new Chart(ctx).Bar(chart_data, {
-          showTooltips: false,
-          pointDot: false,
-          legendTemplate: "<div class=\ \"<%=name.toLowerCase()%>-legend\">\n  <% for (var i=0; i<datasets.length; i++){%>\n      <div style=\ \"background-color:<%=datasets[i].fillColor%>;border: 1px solid <%=datasets[i].strokeColor%>;padding:1px;\">\n        <%if(datasets[i].label){%>\n            <%=datasets[i].label%>\n        <%}%>\n      </div>\n  <%}%>\n</div>"
-        });
-        $legend = $(".protip ." + el + " .user-closed .legend");
-        return $legend.html(myPieChart.generateLegend());
-      })();
-      return (function() {
-        var $legend, chart_data, color, color_index, ctx, date, day, item, myPieChart, open, user, _i, _len, _ref1, _ref2;
-        ctx = $(".protip ." + el + " .user-opened .canvas").get(0).getContext('2d');
-        open = data.open;
-        chart_data = {
-          labels: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
-          datasets: {}
-        };
-        color_index = 0;
-        _ref1 = (open != null ? open.items : void 0) || [];
-        for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
-          item = _ref1[_i];
-          date = new Date(item.created_at);
-          day = date.getDay();
-          day--;
-          if (day === -1) {
-            day = 6;
-          }
-          user = ((_ref2 = item.assignee) != null ? _ref2.login : void 0) || 'unassigned';
-          if (!chart_data.datasets[user]) {
-            color = hexToRgb(window.colors[color_index]);
-            chart_data.datasets[user] = {
-              label: "Issues Opened Opened By " + user,
-              fillColor: "rgba(" + color.r + "," + color.g + "," + color.b + ",0.2)",
-              strokeColor: "rgba(" + color.r + "," + color.g + "," + color.b + ",1)",
-              pointColor: "rgba(" + color.r + "," + color.g + "," + color.b + ",1)",
-              pointStrokeColor: "rgba(" + color.r + "," + color.g + "," + color.b + ",1)",
-              pointHighlightFill: "#fff",
-              pointHighlightStroke: "rgba(151,187,205,1)",
-              data: [0, 0, 0, 0, 0, 0, 0]
+            _ref1 = (open != null ? open.items : void 0) || [];
+            for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
+              item = _ref1[_i];
+              date = new Date(item.created_at);
+              day = date.getDay();
+              day--;
+              if (day === -1) {
+                day = 6;
+              }
+              chart_data.datasets[0].data[day]++;
+            }
+            _ref2 = (closed != null ? closed.items : void 0) || [];
+            for (_j = 0, _len1 = _ref2.length; _j < _len1; _j++) {
+              item = _ref2[_j];
+              date = new Date(item.closed_at);
+              day = date.getDay();
+              day--;
+              if (day === -1) {
+                day = 6;
+              }
+              console.log(day, date, 'apple');
+              chart_data.datasets[1].data[day]++;
+            }
+            myPieChart = new Chart(ctx).Bar(chart_data, {
+              legendTemplate: "<ul class=\ \"<%=name.toLowerCase()%>-legend\">\n  <% for (var i=0; i<datasets.length; i++){%>\n    <div style=\ \"background-color:<%=datasets[i].fillColor%>;border: 1px solid <%=datasets[i].strokeColor%>;padding:1px;\">\n      <%if(datasets[i].label){%>\n          <%=datasets[i].label%>\n      <%}%>\n    </div>\n  <%}%>\n</ul>"
+            });
+            $legend = $(".protip ." + el + " .total-issues .legend");
+            return $legend.html(myPieChart.generateLegend());
+          })();
+          (function() {
+            var $legend, chart_data, closed, color, color_index, ctx, date, day, item, myPieChart, user, _i, _len, _ref1, _ref2;
+            if ((data_configs != null ? data_configs.user_total_closed : void 0) !== 'true') {
+              $(".protip ." + el + " .user-closed").remove();
+              return;
+            }
+            ctx = $(".protip ." + el + " .user-closed .canvas").get(0).getContext('2d');
+            closed = data.closed;
+            chart_data = {
+              labels: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
+              datasets: {}
             };
-            color_index++;
-          }
-          chart_data.datasets[user].data[day]++;
-        }
-        myPieChart = new Chart(ctx).Bar(chart_data, {
-          showTooltips: false,
-          pointDot: false,
-          legendTemplate: "<div class=\ \"<%=name.toLowerCase()%>-legend\">\n  <% for (var i=0; i<datasets.length; i++){%>\n      <div style=\ \"background-color:<%=datasets[i].fillColor%>;border: 1px solid <%=datasets[i].strokeColor%>;padding:1px;\">\n        <%if(datasets[i].label){%>\n            <%=datasets[i].label%>\n        <%}%>\n      </div>\n  <%}%>\n</div>"
-        });
-        $legend = $(".protip ." + el + " .user-opened .legend");
-        return $legend.html(myPieChart.generateLegend());
-      })();
+            color_index = 0;
+            _ref1 = (closed != null ? closed.items : void 0) || [];
+            for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
+              item = _ref1[_i];
+              date = new Date(item.closed_at);
+              day = date.getDay();
+              day--;
+              if (day === -1) {
+                day = 6;
+              }
+              user = ((_ref2 = item.assignee) != null ? _ref2.login : void 0) || 'unassigned';
+              if (!chart_data.datasets[user]) {
+                color = hexToRgb(window.colors[color_index]);
+                chart_data.datasets[user] = {
+                  label: "Issues Closed for " + user,
+                  fillColor: "rgba(" + color.r + "," + color.g + "," + color.b + ",0.2)",
+                  strokeColor: "rgba(" + color.r + "," + color.g + "," + color.b + ",1)",
+                  pointColor: "rgba(" + color.r + "," + color.g + "," + color.b + ",1)",
+                  pointStrokeColor: "rgba(" + color.r + "," + color.g + "," + color.b + ",1)",
+                  pointHighlightFill: "#fff",
+                  pointHighlightStroke: "rgba(151,187,205,1)",
+                  data: [0, 0, 0, 0, 0, 0, 0]
+                };
+                color_index++;
+              }
+              chart_data.datasets[user].data[day]++;
+            }
+            myPieChart = new Chart(ctx).Bar(chart_data, {
+              showTooltips: false,
+              pointDot: false,
+              legendTemplate: "<div class=\ \"<%=name.toLowerCase()%>-legend\">\n  <% for (var i=0; i<datasets.length; i++){%>\n      <div style=\ \"background-color:<%=datasets[i].fillColor%>;border: 1px solid <%=datasets[i].strokeColor%>;padding:1px;\">\n        <%if(datasets[i].label){%>\n            <%=datasets[i].label%>\n        <%}%>\n      </div>\n  <%}%>\n</div>"
+            });
+            $legend = $(".protip ." + el + " .user-closed .legend");
+            return $legend.html(myPieChart.generateLegend());
+          })();
+          return (function() {
+            var $legend, chart_data, color, color_index, ctx, date, day, item, myPieChart, open, user, _i, _len, _ref1, _ref2;
+            if ((data_configs != null ? data_configs.user_total_open : void 0) !== 'true') {
+              $(".protip ." + el + " .user-opened").remove();
+              return;
+            }
+            ctx = $(".protip ." + el + " .user-opened .canvas").get(0).getContext('2d');
+            open = data.open;
+            chart_data = {
+              labels: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
+              datasets: {}
+            };
+            color_index = 0;
+            _ref1 = (open != null ? open.items : void 0) || [];
+            for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
+              item = _ref1[_i];
+              date = new Date(item.created_at);
+              day = date.getDay();
+              day--;
+              if (day === -1) {
+                day = 6;
+              }
+              user = ((_ref2 = item.assignee) != null ? _ref2.login : void 0) || 'unassigned';
+              if (!chart_data.datasets[user]) {
+                color = hexToRgb(window.colors[color_index]);
+                chart_data.datasets[user] = {
+                  label: "Issues Opened Opened By " + user,
+                  fillColor: "rgba(" + color.r + "," + color.g + "," + color.b + ",0.2)",
+                  strokeColor: "rgba(" + color.r + "," + color.g + "," + color.b + ",1)",
+                  pointColor: "rgba(" + color.r + "," + color.g + "," + color.b + ",1)",
+                  pointStrokeColor: "rgba(" + color.r + "," + color.g + "," + color.b + ",1)",
+                  pointHighlightFill: "#fff",
+                  pointHighlightStroke: "rgba(151,187,205,1)",
+                  data: [0, 0, 0, 0, 0, 0, 0]
+                };
+                color_index++;
+              }
+              chart_data.datasets[user].data[day]++;
+            }
+            myPieChart = new Chart(ctx).Bar(chart_data, {
+              showTooltips: false,
+              pointDot: false,
+              legendTemplate: "<div class=\ \"<%=name.toLowerCase()%>-legend\">\n  <% for (var i=0; i<datasets.length; i++){%>\n      <div style=\ \"background-color:<%=datasets[i].fillColor%>;border: 1px solid <%=datasets[i].strokeColor%>;padding:1px;\">\n        <%if(datasets[i].label){%>\n            <%=datasets[i].label%>\n        <%}%>\n      </div>\n  <%}%>\n</div>"
+            });
+            $legend = $(".protip ." + el + " .user-opened .legend");
+            return $legend.html(myPieChart.generateLegend());
+          })();
+        };
+      })(this));
     };
     injectPieChart = function(el, closed, next) {
       var query_base;
