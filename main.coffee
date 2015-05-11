@@ -101,8 +101,8 @@ executeContent = ->
 
   injectBarGraph = (el, data) ->
     $('.protip').append teacup.render ->
-      h1 "Weekly Breakdown"
       div ".#{el}", ->
+        h1 "Weekly Breakdown"
         div '.total-issues', ->
           h1 '.header', -> "Total Issues Closed/Opened"
           canvas '.canvas', 'width': '920', 'height': '180'
@@ -315,6 +315,7 @@ executeContent = ->
       return unless Object.keys(data_configs).length
       t = new Date()
       dayCount = t.getDay()
+      dayCount = 7
       if dayCount is 0
         dayCount = 7
       t.setDate t.getDate() - dayCount
@@ -444,7 +445,6 @@ executeContent = ->
               color: window.colors[milestone_index]
               highlight: window.colors[milestone_index]
               label: item.milestone.title
-              id: 'dsadsaads'
             }
             milestone_data[milestone_index].value++
           milestone_data.sort (a, b) ->

@@ -136,8 +136,8 @@
     };
     injectBarGraph = function(el, data) {
       $('.protip').append(teacup.render(function() {
-        h1("Weekly Breakdown");
         return div("." + el, function() {
+          h1("Weekly Breakdown");
           div('.total-issues', function() {
             h1('.header', function() {
               return "Total Issues Closed/Opened";
@@ -333,6 +333,7 @@
           }
           t = new Date();
           dayCount = t.getDay();
+          dayCount = 7;
           if (dayCount === 0) {
             dayCount = 7;
           }
@@ -500,8 +501,7 @@
                     value: 0,
                     color: window.colors[milestone_index],
                     highlight: window.colors[milestone_index],
-                    label: item.milestone.title,
-                    id: 'dsadsaads'
+                    label: item.milestone.title
                   };
                 }
                 milestone_data[milestone_index].value++;
