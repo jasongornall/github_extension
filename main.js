@@ -233,7 +233,37 @@
               legendTemplate: "<ul class=\ \"<%=name.toLowerCase()%>-legend\">\n  <% for (var i=0; i<datasets.length; i++){%>\n    <div style=\ \"background-color:<%=datasets[i].fillColor%>;border: 1px solid <%=datasets[i].strokeColor%>;padding:1px;\">\n      <%if(datasets[i].label){%>\n          <%=datasets[i].label%>\n      <%}%>\n    </div>\n  <%}%>\n</ul>"
             });
             $legend = $(".protip ." + el + " .total-issues .legend");
-            return $legend.html(myPieChart.generateLegend());
+            $legend.html(myPieChart.generateLegend());
+            return $(".protip ." + el + " .total-issues .canvas").click(function(e) {
+              var activeBars, assignee, bar, created, currentBar, current_label, dayCount, eventData, labels, query, t, _k, _len2;
+              activeBars = myPieChart.getBarsAtEvent(e);
+              eventData = Chart.helpers.getRelativePosition(e);
+              currentBar = null;
+              for (_k = 0, _len2 = activeBars.length; _k < _len2; _k++) {
+                bar = activeBars[_k];
+                if (bar.inRange(eventData.x, eventData.y)) {
+                  currentBar = bar;
+                }
+              }
+              if (!currentBar) {
+                return;
+              }
+              current_label = currentBar.label;
+              labels = myPieChart.scale.xLabels;
+              t = new Date();
+              dayCount = labels.indexOf(current_label);
+              t.setDate(t.getDate() - (t.getDay() - dayCount));
+              t.setHours(0, 0, 0, 0);
+              created = t.toISOString().substr(0, 10);
+              assignee = currentBar.datasetLabel;
+              if (assignee === 'Issues Opened') {
+                query = "created:" + created;
+              } else {
+                query = "closed:" + created;
+              }
+              $('#js-issues-search').val("" + query + " is:issue");
+              $('#js-issues-search').closest('form').submit();
+            });
           })();
           (function() {
             var $legend, chart_data, closed, color, color_index, ctx, date, day, item, myPieChart, user, _i, _len, _ref1, _ref2;

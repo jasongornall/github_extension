@@ -186,6 +186,33 @@ executeContent = ->
 
         $legend = $(".protip .#{el} .total-issues .legend")
         $legend.html myPieChart.generateLegend()
+        $(".protip .#{el} .total-issues .canvas").click (e) ->
+
+          activeBars = myPieChart.getBarsAtEvent(e)
+          eventData = Chart.helpers.getRelativePosition(e)
+          currentBar = null
+          for bar in activeBars
+            if bar.inRange(eventData.x, eventData.y)
+              currentBar = bar
+
+          return unless currentBar
+          current_label = currentBar.label
+          labels = myPieChart.scale.xLabels
+          t = new Date()
+          dayCount = labels.indexOf(current_label)
+          t.setDate t.getDate() - (t.getDay() - dayCount)
+          t.setHours(0,0,0,0)
+          created = t.toISOString().substr(0, 10)
+
+          assignee = currentBar.datasetLabel
+          if assignee is 'Issues Opened'
+            query = "created:#{created}"
+          else
+            query = "closed:#{created}"
+
+          $('#js-issues-search').val("#{query} is:issue")
+          $('#js-issues-search').closest('form').submit()
+          return
 
       do ->
         if data_configs?.user_total_closed != 'true'
