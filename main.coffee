@@ -21,7 +21,18 @@ window.urlWatchInterval  = setInterval ( ->
         old_url = new_url
 ), 1000
 
+getDate = (date) ->
+  breakdown = date.match(/(\d+)/g)
+  return new Date(breakdown[0],parseInt(breakdown[1])-1,breakdown[2])
 
+hexToRgb = (hex) ->
+  result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex)
+  if result
+    r: parseInt(result[1], 16)
+    g: parseInt(result[2], 16)
+    b: parseInt(result[3], 16)
+  else
+    null
 
 executeContent = ->
   clearInterval comment_listener if comment_listener
@@ -91,6 +102,295 @@ executeContent = ->
               li '.hist-item', ->
                 a href:url, -> title
 
+  injectBarGraph = (el, data) ->
+    chrome.runtime.sendMessage {
+      type: 'get-config'
+      config: ["user_total_open","user_total_closed", "weekly_total"]
+    }, (data_configs) =>
+      return unless Object.keys(data_configs).length
+      $('.protip').append teacup.render ->
+        div ".#{el}", ->
+          h1 "Weekly Breakdown"
+          div '.total-issues', ->
+            h1 '.header', -> "Total Issues Closed/Opened"
+            canvas '.canvas', 'width': '920', 'height': '180'
+            div '.legend'
+          div '.user-closed', ->
+            h1 '.header', -> "User Issues Closed"
+            canvas '.canvas', 'width': '920', 'height': '180'
+            div '.legend'
+          div '.user-opened', ->
+            h1 '.header', -> "User Issues Opened"
+            canvas '.canvas', 'width': '920', 'height': '180'
+            div '.legend'
+
+
+      do ->
+        if data_configs?.weekly_total != 'true'
+          $(".protip .#{el} .total-issues").remove()
+          return
+        ctx = $(".protip .#{el} .total-issues .canvas").get(0).getContext('2d')
+
+        {closed, open} = data
+
+        color = hexToRgb window.colors[0]
+        color_2 = hexToRgb window.colors[1]
+        chart_data = {
+          labels: ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
+          datasets: [
+              {
+                  label: "Issues Opened",
+                  fillColor: "rgba(#{color.r},#{color.g},#{color.b},0.2)",
+                  strokeColor: "rgba(#{color.r},#{color.g},#{color.b},1)",
+                  pointColor: "rgba(#{color.r},#{color.g},#{color.b},1)",
+                  pointStrokeColor: "rgba(#{color.r},#{color.g},#{color.b},1)",
+                  data: [0, 0, 0, 0, 0, 0, 0]
+              },
+              {
+                  label: "Issues Closed",
+                  fillColor: "rgba(#{color_2.r},#{color_2.g},#{color_2.b},0.2)",
+                  strokeColor: "rgba(#{color_2.r},#{color_2.g},#{color_2.b},1)",
+                  pointColor: "rgba(#{color_2.r},#{color_2.g},#{color_2.b},1)",
+                  pointStrokeColor: "rgba(#{color_2.r},#{color_2.g},#{color_2.b},1)",
+                  data: [0, 0, 0, 0, 0, 0, 0]
+              }
+          ]
+        }
+
+        for item in open?.items or []
+          date = getDate item.created_at
+          day = date.getDay()
+
+          chart_data.datasets[0].data[day]++
+
+        for item in closed?.items or []
+          date = getDate item.closed_at
+          day = date.getDay()
+
+          chart_data.datasets[1].data[day]++
+
+        myPieChart = new Chart(ctx).Bar chart_data, {
+          showTooltips: false
+          legendTemplate : """
+            <ul class=\ "<%=name.toLowerCase()%>-legend\">
+              <% for (var i=0; i<datasets.length; i++){%>
+                <div style=\ "background-color:<%=datasets[i].fillColor%>;border: 1px solid <%=datasets[i].strokeColor%>;padding:1px;\">
+                  <%if(datasets[i].label){%>
+                      <%=datasets[i].label%>
+                  <%}%>
+                </div>
+              <%}%>
+            </ul>
+          """
+        }
+
+        $legend = $(".protip .#{el} .total-issues .legend")
+        $legend.html myPieChart.generateLegend()
+        $(".protip .#{el} .total-issues .canvas").click (e) ->
+
+          activeBars = myPieChart.getBarsAtEvent(e)
+          eventData = Chart.helpers.getRelativePosition(e)
+          currentBar = null
+          for bar in activeBars
+            if bar.inRange(eventData.x, eventData.y)
+              currentBar = bar
+
+          return unless currentBar
+          current_label = currentBar.label
+          labels = myPieChart.scale.xLabels
+          t = new Date()
+          dayCount = labels.indexOf(current_label)
+          t.setDate t.getDate() - (t.getDay() - dayCount)
+          t.setHours(0,0,0,0)
+          created = t.toISOString().substr(0, 10)
+
+          assignee = currentBar.datasetLabel
+          if assignee is 'Issues Opened'
+            query = "created:#{created}"
+          else
+            query = "closed:#{created}"
+
+          $('#js-issues-search').val("#{query} is:issue")
+          $('#js-issues-search').closest('form').submit()
+          return
+
+      do ->
+        if data_configs?.user_total_closed != 'true'
+          $(".protip .#{el} .user-closed").remove()
+          return
+        ctx = $(".protip .#{el} .user-closed .canvas").get(0).getContext('2d')
+
+        {closed} = data
+
+        chart_data = {
+          labels: ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
+          datasets: {
+          }
+        }
+
+
+        color_index = 0
+        for item in closed?.items or []
+          date = getDate item.closed_at
+          day = date.getDay()
+
+          user = item.assignee?.login or 'unassigned'
+          if not chart_data.datasets[user]
+            color = hexToRgb window.colors[color_index]
+            chart_data.datasets[user] = {
+              label: "#{user}",
+              fillColor: "rgba(#{color.r},#{color.g},#{color.b},0.2)",
+              strokeColor: "rgba(#{color.r},#{color.g},#{color.b},1)",
+              pointColor: "rgba(#{color.r},#{color.g},#{color.b},1)",
+              pointStrokeColor: "rgba(#{color.r},#{color.g},#{color.b},1)",
+              pointHighlightFill: "#fff",
+              pointHighlightStroke: "rgba(151,187,205,1)",
+              data: [0, 0, 0, 0, 0, 0, 0]
+            }
+            color_index++
+          chart_data.datasets[user].data[day]++
+
+
+
+        myPieChart = new Chart(ctx).Bar chart_data, {
+              showTooltips: false
+              pointDot : false
+              legendTemplate : """
+                <div class=\ "<%=name.toLowerCase()%>-legend\">
+                  <% for (var i=0; i<datasets.length; i++){%>
+                      <div style=\ "background-color:<%=datasets[i].fillColor%>;border: 1px solid <%=datasets[i].strokeColor%>;padding:1px;\">
+                        <%if(datasets[i].label){%>
+                            <%=datasets[i].label%>
+                        <%}%>
+                      </div>
+                  <%}%>
+                </div>
+              """
+        }
+
+        $legend = $(".protip .#{el} .user-closed .legend")
+        $legend.html myPieChart.generateLegend()
+
+        $(".protip .#{el} .user-closed .canvas").click (e) ->
+
+          activeBars = myPieChart.getBarsAtEvent(e)
+          eventData = Chart.helpers.getRelativePosition(e)
+          currentBar = null
+          for bar in activeBars
+            if bar.inRange(eventData.x, eventData.y)
+              currentBar = bar
+
+          return unless currentBar
+          current_label = currentBar.label
+          labels = myPieChart.scale.xLabels
+          t = new Date()
+          dayCount = labels.indexOf(current_label)
+          t.setDate t.getDate() - (t.getDay() - dayCount)
+          t.setHours(0,0,0,0)
+          created = t.toISOString().substr(0, 10)
+
+          assignee = currentBar.datasetLabel
+          if assignee is 'unassigned'
+            assignee = 'no:assignee'
+          else
+            assignee = "assignee:#{assignee}"
+
+          $('#js-issues-search').val("closed:#{created} #{assignee} is:issue")
+          $('#js-issues-search').closest('form').submit()
+          return
+
+      do ->
+        if data_configs?.user_total_open != 'true'
+          $(".protip .#{el} .user-opened").remove()
+          return
+        ctx = $(".protip .#{el} .user-opened .canvas").get(0).getContext('2d')
+
+        {open} = data
+
+        chart_data = {
+          labels: ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
+          datasets: {
+          }
+        }
+
+
+        color_index = 0
+        for item in open?.items or []
+          date = getDate item.created_at
+          day = date.getDay()
+
+          user = item.assignee?.login or 'unassigned'
+          if not chart_data.datasets[user]
+            color = hexToRgb window.colors[color_index]
+            chart_data.datasets[user] = {
+              label: "#{user}",
+              fillColor: "rgba(#{color.r},#{color.g},#{color.b},0.2)",
+              strokeColor: "rgba(#{color.r},#{color.g},#{color.b},1)",
+              pointColor: "rgba(#{color.r},#{color.g},#{color.b},1)",
+              pointStrokeColor: "rgba(#{color.r},#{color.g},#{color.b},1)",
+              pointHighlightFill: "#fff",
+              pointHighlightStroke: "rgba(151,187,205,1)",
+              data: [0, 0, 0, 0, 0, 0, 0]
+            }
+            color_index++
+          chart_data.datasets[user].data[day]++
+
+
+
+
+        myPieChart = new Chart(ctx).Bar chart_data, {
+              showTooltips: false
+              pointDot : false
+              legendTemplate : """
+                <div class=\ "<%=name.toLowerCase()%>-legend\">
+                  <% for (var i=0; i<datasets.length; i++){%>
+                      <div style=\ "background-color:<%=datasets[i].fillColor%>;border: 1px solid <%=datasets[i].strokeColor%>;padding:1px;\">
+                        <%if(datasets[i].label){%>
+                            <%=datasets[i].label%>
+                        <%}%>
+                      </div>
+                  <%}%>
+                </div>
+              """
+
+
+
+        }
+        $legend = $(".protip .#{el} .user-opened .legend")
+        $legend.html myPieChart.generateLegend()
+
+
+        $(".protip .#{el} .user-opened .canvas").click (e) ->
+          console.log 'HIT'
+          activeBars = myPieChart.getBarsAtEvent(e)
+          eventData = Chart.helpers.getRelativePosition(e)
+          currentBar = null
+          for bar in activeBars
+            if bar.inRange(eventData.x, eventData.y)
+              currentBar = bar
+
+          return unless currentBar
+          current_label = currentBar.label
+          labels = myPieChart.scale.xLabels
+          t = new Date()
+          dayCount = labels.indexOf(current_label)
+          t.setDate t.getDate() - (t.getDay() - dayCount)
+          t.setHours(0,0,0,0)
+          created = t.toISOString().substr(0, 10)
+
+          assignee = currentBar.datasetLabel
+          if assignee is 'unassigned'
+            assignee = 'no:assignee'
+          else
+            assignee = "assignee:#{assignee}"
+
+          console.log "created:#{created}"
+
+          $('#js-issues-search').val("created:#{created} #{assignee} is:issue")
+          $('#js-issues-search').closest('form').submit()
+          return
+
+
   injectPieChart = (el, closed, next) ->
     if closed
       query_base = "closed"
@@ -104,8 +404,7 @@ executeContent = ->
       return unless Object.keys(data_configs).length
       t = new Date()
       dayCount = t.getDay()
-      if dayCount is 0
-        dayCount = 7
+
       t.setDate t.getDate() - dayCount
       t.setHours(0,0,0,0)
       created = t.toISOString().substr(0, 10)
@@ -117,10 +416,10 @@ executeContent = ->
         page: 1
         per_page: 1000
       }, (issues_data) ->
-        return unless issues_data?.items?.length
+        return next {} unless issues_data?.items?.length
         $('.protip').append teacup.render ->
           div ".#{el}", ->
-            h1 "Issues #{query_base.toUpperCase()} this week for #{repo}"
+            h1 "#{issues_data?.items?.length} Issues #{query_base.toUpperCase()} this week for #{repo}"
             div '.issues-closed animated fadeIn', ->
               h1 '.header', -> "User Breakdown"
               canvas '.canvas', 'width': '180', 'height': '180'
@@ -177,7 +476,6 @@ executeContent = ->
                       <%}%>
               </ol>
             """
-            animateRotate : false
           }
           $legend = $(".protip .#{el} .issues-closed .legend")
           $legend.html myPieChart.generateLegend()
@@ -234,7 +532,6 @@ executeContent = ->
               color: window.colors[milestone_index]
               highlight: window.colors[milestone_index]
               label: item.milestone.title
-              id: 'dsadsaads'
             }
             milestone_data[milestone_index].value++
           milestone_data.sort (a, b) ->
@@ -254,7 +551,6 @@ executeContent = ->
                       <%}%>
               </ol>
             """
-            animateRotate : false
           }
           $legend = $(".protip .#{el} .milestone-breakdown .legend")
           $legend.html myPieChart.generateLegend()
@@ -332,7 +628,6 @@ executeContent = ->
                       <%}%>
               </ol>
             """
-            animateRotate : false
           }
           $legend = $(".protip .#{el} .label-breakdown .legend")
           $legend.html myPieChart.generateLegend()
@@ -367,7 +662,7 @@ executeContent = ->
             label = activePoints[0]?.fillColor.split('#').join('')
             $(".protip .#{el} .label-breakdown .val_#{label}").click()
 
-        next?()
+        next(issues_data or {})
 
 
 
@@ -379,6 +674,8 @@ executeContent = ->
   pathname = new URL(window.location.href).pathname
 
   $('.protip .info').remove()
+  $('.protip .info_2').remove()
+  $('.protip .info_3').remove()
   $('.repository-sidebar .history').remove()
   $(".issue-meta .new-comments").remove()
   if /issues$|\/issues\/assigned\/|pulls$|\/pulls\/assigned\/|\/milestones\//.test pathname
@@ -398,8 +695,9 @@ executeContent = ->
     injectHistory()
     # canvas test
     if /issues$|\/issues\/assigned\/|\/milestones\//.test pathname
-      injectPieChart 'info', true, ->
-        injectPieChart 'info_2' , false
+      injectPieChart 'info', true, (issues_data_1 = {}) ->
+        injectPieChart 'info_2' , false, (issues_data_2 = {})->
+          injectBarGraph 'info_3', {closed: issues_data_1, open: issues_data_2}
 
     chrome.runtime.sendMessage {
       type: 'search-info'
