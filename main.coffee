@@ -723,7 +723,8 @@ executeContent = ->
     inject_key = =>
       key = new_url
       return unless /issues\/\d+$|pull\/\d+$/.test key
-      localStorage[key] = comment_total
+      if localStorage[key] < comment_total
+        localStorage[key] = comment_total
 
       # prevent dupes
       arr = JSON.parse(localStorage['history'])

@@ -815,7 +815,9 @@
           if (!/issues\/\d+$|pull\/\d+$/.test(key)) {
             return;
           }
-          localStorage[key] = comment_total;
+          if (localStorage[key] < comment_total) {
+            localStorage[key] = comment_total;
+          }
           arr = JSON.parse(localStorage['history']);
           for (index = _i = 0, _len = arr.length; _i < _len; index = ++_i) {
             item = arr[index];
