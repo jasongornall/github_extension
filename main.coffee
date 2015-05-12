@@ -335,9 +335,6 @@ executeContent = ->
             color_index++
           chart_data.datasets[user].data[day]++
 
-
-
-
         myPieChart = new Chart(ctx).Bar chart_data, {
               showTooltips: false
               pointDot : false
@@ -352,9 +349,6 @@ executeContent = ->
                   <%}%>
                 </div>
               """
-
-
-
         }
         $legend = $(".protip .#{el} .user-opened .legend")
         $legend.html myPieChart.generateLegend()
@@ -632,6 +626,7 @@ executeContent = ->
           $legend = $(".protip .#{el} .label-breakdown .legend")
           $legend.html myPieChart.generateLegend()
           legendHolder = $legend[0]
+
 
           $legend.find('.pie-legend li').on 'click', (e) ->
             $el = $ e.currentTarget
