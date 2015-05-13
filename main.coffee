@@ -171,7 +171,6 @@ executeContent = ->
 
         myPieChart = new Chart(ctx).BarOneTip chart_data, {
           tooltipTemplate: "<%if (datasetLabel){%><%=datasetLabel%>: <%}%><%= value %>",
-          showTooltips: false
           legendTemplate : """
             <ul class=\ "<%=name.toLowerCase()%>-legend\">
               <% for (var i=0; i<datasets.length; i++){%>

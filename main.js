@@ -230,7 +230,6 @@
             }
             myPieChart = new Chart(ctx).BarOneTip(chart_data, {
               tooltipTemplate: "<%if (datasetLabel){%><%=datasetLabel%>: <%}%><%= value %>",
-              showTooltips: false,
               legendTemplate: "<ul class=\ \"<%=name.toLowerCase()%>-legend\">\n  <% for (var i=0; i<datasets.length; i++){%>\n    <div style=\ \"background-color:<%=datasets[i].fillColor%>;border: 1px solid <%=datasets[i].strokeColor%>;padding:1px;\">\n      <%if(datasets[i].label){%>\n          <%=datasets[i].label%>\n      <%}%>\n    </div>\n  <%}%>\n</ul>"
             });
             $legend = $(".protip ." + el + " .total-issues .legend");
