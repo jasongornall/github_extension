@@ -113,10 +113,10 @@
         if (data !== 'true') {
           return;
         }
-        return $('.repository-sidebar').append(teacup.render(function() {
+        return $('.protip').append(teacup.render(function() {
           return div('.history animated fadeIn', function() {
             h1('.header', function() {
-              return "Issue History for You";
+              return "Last 5 Issues Viewed";
             });
             return ol('.his-items', function() {
               var arr, loc, title, url, _i, _len, _ref1, _results;
@@ -141,279 +141,8 @@
       });
     };
     injectBarGraph = function(el, data) {
-      return chrome.runtime.sendMessage({
-        type: 'get-config',
-        config: ["user_total_open", "user_total_closed", "weekly_total"]
-      }, (function(_this) {
-        return function(data_configs) {
-          if (!Object.keys(data_configs).length) {
-            return;
-          }
-          $('.protip').append(teacup.render(function() {
-            return div("." + el, function() {
-              h1("Weekly Breakdown");
-              div('.total-issues', function() {
-                h1('.header', function() {
-                  return "Total Issues Closed/Opened";
-                });
-                canvas('.canvas', {
-                  'width': '920',
-                  'height': '180'
-                });
-                return div('.legend');
-              });
-              div('.user-closed', function() {
-                h1('.header', function() {
-                  return "User Issues Closed";
-                });
-                canvas('.canvas', {
-                  'width': '920',
-                  'height': '180'
-                });
-                return div('.legend');
-              });
-              return div('.user-opened', function() {
-                h1('.header', function() {
-                  return "User Issues Opened";
-                });
-                canvas('.canvas', {
-                  'width': '920',
-                  'height': '180'
-                });
-                return div('.legend');
-              });
-            });
-          }));
-          (function() {
-            var $legend, chart_data, closed, color, color_2, ctx, date, day, item, myPieChart, open, _i, _j, _len, _len1, _ref1, _ref2;
-            if ((data_configs != null ? data_configs.weekly_total : void 0) !== 'true') {
-              $(".protip ." + el + " .total-issues").remove();
-              return;
-            }
-            ctx = $(".protip ." + el + " .total-issues .canvas").get(0).getContext('2d');
-            closed = data.closed, open = data.open;
-            color = hexToRgb(window.colors[0]);
-            color_2 = hexToRgb(window.colors[1]);
-            chart_data = {
-              labels: ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
-              datasets: [
-                {
-                  label: "Issues Opened",
-                  fillColor: "rgba(" + color.r + "," + color.g + "," + color.b + ",0.2)",
-                  strokeColor: "rgba(" + color.r + "," + color.g + "," + color.b + ",1)",
-                  pointColor: "rgba(" + color.r + "," + color.g + "," + color.b + ",1)",
-                  pointStrokeColor: "rgba(" + color.r + "," + color.g + "," + color.b + ",1)",
-                  data: [0, 0, 0, 0, 0, 0, 0]
-                }, {
-                  label: "Issues Closed",
-                  fillColor: "rgba(" + color_2.r + "," + color_2.g + "," + color_2.b + ",0.2)",
-                  strokeColor: "rgba(" + color_2.r + "," + color_2.g + "," + color_2.b + ",1)",
-                  pointColor: "rgba(" + color_2.r + "," + color_2.g + "," + color_2.b + ",1)",
-                  pointStrokeColor: "rgba(" + color_2.r + "," + color_2.g + "," + color_2.b + ",1)",
-                  data: [0, 0, 0, 0, 0, 0, 0]
-                }
-              ]
-            };
-            _ref1 = (open != null ? open.items : void 0) || [];
-            for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
-              item = _ref1[_i];
-              date = getDate(item.created_at);
-              day = date.getDay();
-              chart_data.datasets[0].data[day]++;
-            }
-            _ref2 = (closed != null ? closed.items : void 0) || [];
-            for (_j = 0, _len1 = _ref2.length; _j < _len1; _j++) {
-              item = _ref2[_j];
-              date = getDate(item.closed_at);
-              day = date.getDay();
-              chart_data.datasets[1].data[day]++;
-            }
-            myPieChart = new Chart(ctx).BarOneTip(chart_data, {
-              tooltipTemplate: "<%if (datasetLabel){%><%=datasetLabel%>: <%}%><%= value %>",
-              legendTemplate: "<ul class=\ \"<%=name.toLowerCase()%>-legend\">\n  <% for (var i=0; i<datasets.length; i++){%>\n    <div style=\ \"background-color:<%=datasets[i].fillColor%>;border: 1px solid <%=datasets[i].strokeColor%>;padding:1px;\">\n      <%if(datasets[i].label){%>\n          <%=datasets[i].label%>\n      <%}%>\n    </div>\n  <%}%>\n</ul>"
-            });
-            $legend = $(".protip ." + el + " .total-issues .legend");
-            $legend.html(myPieChart.generateLegend());
-            return $(".protip ." + el + " .total-issues .canvas").click(function(e) {
-              var activeBars, assignee, bar, created, currentBar, current_label, dayCount, eventData, labels, query, t, _k, _len2;
-              activeBars = myPieChart.getBarsAtEvent(e);
-              eventData = Chart.helpers.getRelativePosition(e);
-              currentBar = null;
-              for (_k = 0, _len2 = activeBars.length; _k < _len2; _k++) {
-                bar = activeBars[_k];
-                if (bar.inRange(eventData.x, eventData.y)) {
-                  currentBar = bar;
-                }
-              }
-              if (!currentBar) {
-                return;
-              }
-              current_label = currentBar.label;
-              labels = myPieChart.scale.xLabels;
-              t = new Date();
-              dayCount = labels.indexOf(current_label);
-              t.setDate(t.getDate() - (t.getDay() - dayCount));
-              t.setHours(0, 0, 0, 0);
-              created = t.toISOString().substr(0, 10);
-              assignee = currentBar.datasetLabel;
-              if (assignee === 'Issues Opened') {
-                query = "created:" + created;
-              } else {
-                query = "closed:" + created;
-              }
-              $('#js-issues-search').val("" + query + " is:issue");
-              $('#js-issues-search').closest('form').submit();
-            });
-          })();
-          (function() {
-            var $legend, chart_data, closed, color, color_index, ctx, date, day, item, myPieChart, user, _i, _len, _ref1, _ref2;
-            if ((data_configs != null ? data_configs.user_total_closed : void 0) !== 'true') {
-              $(".protip ." + el + " .user-closed").remove();
-              return;
-            }
-            ctx = $(".protip ." + el + " .user-closed .canvas").get(0).getContext('2d');
-            closed = data.closed;
-            chart_data = {
-              labels: ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
-              datasets: {}
-            };
-            color_index = 0;
-            _ref1 = (closed != null ? closed.items : void 0) || [];
-            for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
-              item = _ref1[_i];
-              date = getDate(item.closed_at);
-              day = date.getDay();
-              user = ((_ref2 = item.assignee) != null ? _ref2.login : void 0) || 'unassigned';
-              if (!chart_data.datasets[user]) {
-                color = hexToRgb(window.colors[color_index]);
-                chart_data.datasets[user] = {
-                  label: "" + user,
-                  fillColor: "rgba(" + color.r + "," + color.g + "," + color.b + ",0.2)",
-                  strokeColor: "rgba(" + color.r + "," + color.g + "," + color.b + ",1)",
-                  pointColor: "rgba(" + color.r + "," + color.g + "," + color.b + ",1)",
-                  pointStrokeColor: "rgba(" + color.r + "," + color.g + "," + color.b + ",1)",
-                  pointHighlightFill: "#fff",
-                  pointHighlightStroke: "rgba(151,187,205,1)",
-                  data: [0, 0, 0, 0, 0, 0, 0]
-                };
-                color_index++;
-              }
-              chart_data.datasets[user].data[day]++;
-            }
-            myPieChart = new Chart(ctx).BarOneTip(chart_data, {
-              tooltipTemplate: "<%if (datasetLabel){%><%=datasetLabel%>: <%}%><%= value %>",
-              pointDot: false,
-              legendTemplate: "<div class=\ \"<%=name.toLowerCase()%>-legend\">\n  <% for (var i=0; i<datasets.length; i++){%>\n      <div style=\ \"background-color:<%=datasets[i].fillColor%>;border: 1px solid <%=datasets[i].strokeColor%>;padding:1px;\">\n        <%if(datasets[i].label){%>\n            <%=datasets[i].label%>\n        <%}%>\n      </div>\n  <%}%>\n</div>"
-            });
-            $legend = $(".protip ." + el + " .user-closed .legend");
-            $legend.html(myPieChart.generateLegend());
-            return $(".protip ." + el + " .user-closed .canvas").click(function(e) {
-              var activeBars, assignee, bar, created, currentBar, current_label, dayCount, eventData, labels, t, _j, _len1;
-              activeBars = myPieChart.getBarsAtEvent(e);
-              eventData = Chart.helpers.getRelativePosition(e);
-              currentBar = null;
-              for (_j = 0, _len1 = activeBars.length; _j < _len1; _j++) {
-                bar = activeBars[_j];
-                if (bar.inRange(eventData.x, eventData.y)) {
-                  currentBar = bar;
-                }
-              }
-              if (!currentBar) {
-                return;
-              }
-              current_label = currentBar.label;
-              labels = myPieChart.scale.xLabels;
-              t = new Date();
-              dayCount = labels.indexOf(current_label);
-              t.setDate(t.getDate() - (t.getDay() - dayCount));
-              t.setHours(0, 0, 0, 0);
-              created = t.toISOString().substr(0, 10);
-              assignee = currentBar.datasetLabel;
-              if (assignee === 'unassigned') {
-                assignee = 'no:assignee';
-              } else {
-                assignee = "assignee:" + assignee;
-              }
-              $('#js-issues-search').val("closed:" + created + " " + assignee + " is:issue");
-              $('#js-issues-search').closest('form').submit();
-            });
-          })();
-          return (function() {
-            var $legend, chart_data, color, color_index, ctx, date, day, item, myPieChart, open, user, _i, _len, _ref1, _ref2;
-            if ((data_configs != null ? data_configs.user_total_open : void 0) !== 'true') {
-              $(".protip ." + el + " .user-opened").remove();
-              return;
-            }
-            ctx = $(".protip ." + el + " .user-opened .canvas").get(0).getContext('2d');
-            open = data.open;
-            chart_data = {
-              labels: ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
-              datasets: {}
-            };
-            color_index = 0;
-            _ref1 = (open != null ? open.items : void 0) || [];
-            for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
-              item = _ref1[_i];
-              date = getDate(item.created_at);
-              day = date.getDay();
-              user = ((_ref2 = item.assignee) != null ? _ref2.login : void 0) || 'unassigned';
-              if (!chart_data.datasets[user]) {
-                color = hexToRgb(window.colors[color_index]);
-                chart_data.datasets[user] = {
-                  label: "" + user,
-                  fillColor: "rgba(" + color.r + "," + color.g + "," + color.b + ",0.2)",
-                  strokeColor: "rgba(" + color.r + "," + color.g + "," + color.b + ",1)",
-                  pointColor: "rgba(" + color.r + "," + color.g + "," + color.b + ",1)",
-                  pointStrokeColor: "rgba(" + color.r + "," + color.g + "," + color.b + ",1)",
-                  pointHighlightFill: "#fff",
-                  pointHighlightStroke: "rgba(151,187,205,1)",
-                  data: [0, 0, 0, 0, 0, 0, 0]
-                };
-                color_index++;
-              }
-              chart_data.datasets[user].data[day]++;
-            }
-            myPieChart = new Chart(ctx).BarOneTip(chart_data, {
-              tooltipTemplate: "<%if (datasetLabel){%><%=datasetLabel%>: <%}%><%= value %>",
-              legendTemplate: "<div class=\ \"<%=name.toLowerCase()%>-legend\">\n  <% for (var i=0; i<datasets.length; i++){%>\n      <div style=\ \"background-color:<%=datasets[i].fillColor%>;border: 1px solid <%=datasets[i].strokeColor%>;padding:1px;\">\n        <%if(datasets[i].label){%>\n            <%=datasets[i].label%>\n        <%}%>\n      </div>\n  <%}%>\n</div>"
-            });
-            $legend = $(".protip ." + el + " .user-opened .legend");
-            $legend.html(myPieChart.generateLegend());
-            return $(".protip ." + el + " .user-opened .canvas").click(function(e) {
-              var activeBars, assignee, bar, created, currentBar, current_label, dayCount, eventData, labels, t, _j, _len1;
-              console.log('HIT');
-              activeBars = myPieChart.getBarsAtEvent(e);
-              eventData = Chart.helpers.getRelativePosition(e);
-              currentBar = null;
-              for (_j = 0, _len1 = activeBars.length; _j < _len1; _j++) {
-                bar = activeBars[_j];
-                if (bar.inRange(eventData.x, eventData.y)) {
-                  currentBar = bar;
-                }
-              }
-              if (!currentBar) {
-                return;
-              }
-              current_label = currentBar.label;
-              labels = myPieChart.scale.xLabels;
-              t = new Date();
-              dayCount = labels.indexOf(current_label);
-              t.setDate(t.getDate() - (t.getDay() - dayCount));
-              t.setHours(0, 0, 0, 0);
-              created = t.toISOString().substr(0, 10);
-              assignee = currentBar.datasetLabel;
-              if (assignee === 'unassigned') {
-                assignee = 'no:assignee';
-              } else {
-                assignee = "assignee:" + assignee;
-              }
-              console.log("created:" + created);
-              $('#js-issues-search').val("created:" + created + " " + assignee + " is:issue");
-              $('#js-issues-search').closest('form').submit();
-            });
-          })();
-        };
-      })(this));
+      $('#js-issues-search').val("created:" + created + " " + assignee + " is:issue");
+      $('#js-issues-search').closest('form').submit();
     };
     injectPieChart = function(el, closed, next) {
       var query_base;
@@ -537,7 +266,6 @@
               legendHolder = $legend[0];
               $legend.find('.pie-legend li').on('click', function(e) {
                 var $el, assignee;
-                console.log('INSIDE');
                 $el = $(e.currentTarget);
                 assignee = $el.find('span').text().trim();
                 if (assignee === 'unassigned') {
@@ -656,7 +384,6 @@
               milestone_data = [];
               config_data = {};
               config_index = -1;
-              console.log(issues_data, 'sdaadasasd');
               _ref2 = issues_data != null ? issues_data.items : void 0;
               for (_i = 0, _len = _ref2.length; _i < _len; _i++) {
                 item = _ref2[_i];
@@ -724,7 +451,6 @@
               return $(".protip ." + el + " .label-breakdown .canvas").on('click', function(e) {
                 var activePoints, _ref5;
                 activePoints = myPieChart.getSegmentsAtEvent(e);
-                console.log(activePoints, '123');
                 label = (_ref5 = activePoints[0]) != null ? _ref5.fillColor.split('#').join('') : void 0;
                 return $(".protip ." + el + " .label-breakdown .val_" + label).click();
               });
@@ -742,7 +468,7 @@
     $('.protip .info').remove();
     $('.protip .info_2').remove();
     $('.protip .info_3').remove();
-    $('.repository-sidebar .history').remove();
+    $('.protip .history').remove();
     $(".issue-meta .new-comments").remove();
     if (/issues$|\/issues\/assigned\/|pulls$|\/pulls\/assigned\/|\/milestones\//.test(pathname)) {
       if (!((_ref1 = $('#js-issues-search')) != null ? _ref1.length : void 0)) {

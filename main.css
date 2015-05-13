@@ -2,7 +2,7 @@
 
 
 
-.repository-sidebar h1,
+.protip h1,
 .protip h1 {
   width: auto;
   min-width: inherit;
@@ -29,11 +29,11 @@
 .protip > .info > h1 {
   color: red;
 }
-.repository-sidebar .history .hist-item {
+.protip .history .hist-item {
   list-style: decimal;
   margin-left: 20px;
 }
-.repository-sidebar .history .hist-item > a {
+.protip .history .hist-item > a {
   display: inline-block;
   width: 100%;
   overflow: hidden;
@@ -42,11 +42,12 @@
   vertical-align: bottom;
 }
 
-.repository-sidebar .history {
+.protip .history {
   left: 0px;
   position: relative;
   top: 0px;
-  width: 180px;
+  width: 100%;
+  text-align:  left;
   opacity: 0;
 }
 

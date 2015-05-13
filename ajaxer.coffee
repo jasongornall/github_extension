@@ -11,7 +11,6 @@ chrome.runtime.onMessage.addListener (request, sender, sendResponse) ->
           sendResponse json
 
      when 'search-info'
-      console.log 'search on load'
       query  = "https://api.github.com/search/issues?q=#{request.query}+repo:#{request.repo}&page=#{request.page}&per_page=#{request.per_page}"
       gh.xhrWithAuth 'GET', query, false, (error, status, response) ->
         json = JSON.parse(response) if response
