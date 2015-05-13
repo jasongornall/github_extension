@@ -228,7 +228,8 @@
               day = date.getDay();
               chart_data.datasets[1].data[day]++;
             }
-            myPieChart = new Chart(ctx).Bar(chart_data, {
+            myPieChart = new Chart(ctx).BarOneTip(chart_data, {
+              tooltipTemplate: "<%if (datasetLabel){%><%=datasetLabel%>: <%}%><%= value %>",
               showTooltips: false,
               legendTemplate: "<ul class=\ \"<%=name.toLowerCase()%>-legend\">\n  <% for (var i=0; i<datasets.length; i++){%>\n    <div style=\ \"background-color:<%=datasets[i].fillColor%>;border: 1px solid <%=datasets[i].strokeColor%>;padding:1px;\">\n      <%if(datasets[i].label){%>\n          <%=datasets[i].label%>\n      <%}%>\n    </div>\n  <%}%>\n</ul>"
             });
@@ -300,8 +301,8 @@
               }
               chart_data.datasets[user].data[day]++;
             }
-            myPieChart = new Chart(ctx).Bar(chart_data, {
-              showTooltips: false,
+            myPieChart = new Chart(ctx).BarOneTip(chart_data, {
+              tooltipTemplate: "<%if (datasetLabel){%><%=datasetLabel%>: <%}%><%= value %>",
               pointDot: false,
               legendTemplate: "<div class=\ \"<%=name.toLowerCase()%>-legend\">\n  <% for (var i=0; i<datasets.length; i++){%>\n      <div style=\ \"background-color:<%=datasets[i].fillColor%>;border: 1px solid <%=datasets[i].strokeColor%>;padding:1px;\">\n        <%if(datasets[i].label){%>\n            <%=datasets[i].label%>\n        <%}%>\n      </div>\n  <%}%>\n</div>"
             });
@@ -373,9 +374,8 @@
               }
               chart_data.datasets[user].data[day]++;
             }
-            myPieChart = new Chart(ctx).Bar(chart_data, {
-              showTooltips: false,
-              pointDot: false,
+            myPieChart = new Chart(ctx).BarOneTip(chart_data, {
+              tooltipTemplate: "<%if (datasetLabel){%><%=datasetLabel%>: <%}%><%= value %>",
               legendTemplate: "<div class=\ \"<%=name.toLowerCase()%>-legend\">\n  <% for (var i=0; i<datasets.length; i++){%>\n      <div style=\ \"background-color:<%=datasets[i].fillColor%>;border: 1px solid <%=datasets[i].strokeColor%>;padding:1px;\">\n        <%if(datasets[i].label){%>\n            <%=datasets[i].label%>\n        <%}%>\n      </div>\n  <%}%>\n</div>"
             });
             $legend = $(".protip ." + el + " .user-opened .legend");

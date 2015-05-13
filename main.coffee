@@ -169,7 +169,8 @@ executeContent = ->
 
           chart_data.datasets[1].data[day]++
 
-        myPieChart = new Chart(ctx).Bar chart_data, {
+        myPieChart = new Chart(ctx).BarOneTip chart_data, {
+          tooltipTemplate: "<%if (datasetLabel){%><%=datasetLabel%>: <%}%><%= value %>",
           showTooltips: false
           legendTemplate : """
             <ul class=\ "<%=name.toLowerCase()%>-legend\">
@@ -250,22 +251,20 @@ executeContent = ->
             color_index++
           chart_data.datasets[user].data[day]++
 
-
-
-        myPieChart = new Chart(ctx).Bar chart_data, {
-              showTooltips: false
-              pointDot : false
-              legendTemplate : """
-                <div class=\ "<%=name.toLowerCase()%>-legend\">
-                  <% for (var i=0; i<datasets.length; i++){%>
-                      <div style=\ "background-color:<%=datasets[i].fillColor%>;border: 1px solid <%=datasets[i].strokeColor%>;padding:1px;\">
-                        <%if(datasets[i].label){%>
-                            <%=datasets[i].label%>
-                        <%}%>
-                      </div>
-                  <%}%>
-                </div>
-              """
+        myPieChart = new Chart(ctx).BarOneTip chart_data, {
+          tooltipTemplate: "<%if (datasetLabel){%><%=datasetLabel%>: <%}%><%= value %>",
+          pointDot : false
+          legendTemplate : """
+            <div class=\ "<%=name.toLowerCase()%>-legend\">
+              <% for (var i=0; i<datasets.length; i++){%>
+                  <div style=\ "background-color:<%=datasets[i].fillColor%>;border: 1px solid <%=datasets[i].strokeColor%>;padding:1px;\">
+                    <%if(datasets[i].label){%>
+                        <%=datasets[i].label%>
+                    <%}%>
+                  </div>
+              <%}%>
+            </div>
+          """
         }
 
         $legend = $(".protip .#{el} .user-closed .legend")
@@ -313,7 +312,6 @@ executeContent = ->
           }
         }
 
-
         color_index = 0
         for item in open?.items or []
           date = getDate item.created_at
@@ -335,20 +333,19 @@ executeContent = ->
             color_index++
           chart_data.datasets[user].data[day]++
 
-        myPieChart = new Chart(ctx).Bar chart_data, {
-              showTooltips: false
-              pointDot : false
-              legendTemplate : """
-                <div class=\ "<%=name.toLowerCase()%>-legend\">
-                  <% for (var i=0; i<datasets.length; i++){%>
-                      <div style=\ "background-color:<%=datasets[i].fillColor%>;border: 1px solid <%=datasets[i].strokeColor%>;padding:1px;\">
-                        <%if(datasets[i].label){%>
-                            <%=datasets[i].label%>
-                        <%}%>
-                      </div>
-                  <%}%>
-                </div>
-              """
+        myPieChart = new Chart(ctx).BarOneTip chart_data, {
+          tooltipTemplate: "<%if (datasetLabel){%><%=datasetLabel%>: <%}%><%= value %>",
+          legendTemplate : """
+            <div class=\ "<%=name.toLowerCase()%>-legend\">
+              <% for (var i=0; i<datasets.length; i++){%>
+                  <div style=\ "background-color:<%=datasets[i].fillColor%>;border: 1px solid <%=datasets[i].strokeColor%>;padding:1px;\">
+                    <%if(datasets[i].label){%>
+                        <%=datasets[i].label%>
+                    <%}%>
+                  </div>
+              <%}%>
+            </div>
+          """
         }
         $legend = $(".protip .#{el} .user-opened .legend")
         $legend.html myPieChart.generateLegend()
