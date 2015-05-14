@@ -141,7 +141,7 @@ executeContent = ->
                 li '.hist-item', value: "#{index + 6}", ->
                   a href:url, -> title
             ol '.his-items', ->
-              arr = JSON.parse(localStorage['history']).reverse()[9..14]
+              arr = JSON.parse(localStorage['history']).reverse()[10..14]
               for loc, index in arr or []
                 {title, url} = loc
                 li '.hist-item', value: "#{index + 11}", ->

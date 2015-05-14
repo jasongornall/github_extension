@@ -191,7 +191,7 @@
               });
               return ol('.his-items', function() {
                 var arr, index, loc, title, url, _i, _len, _ref1, _results;
-                arr = JSON.parse(localStorage['history']).reverse().slice(9, 15);
+                arr = JSON.parse(localStorage['history']).reverse().slice(10, 15);
                 _ref1 = arr || [];
                 _results = [];
                 for (index = _i = 0, _len = _ref1.length; _i < _len; index = ++_i) {
