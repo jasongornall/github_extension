@@ -186,7 +186,7 @@ executeContent = ->
       return unless Object.keys(data_configs).length
       $('.protip').append teacup.render ->
         div ".#{el}", ->
-          h1 "Weekly Breakdown"
+          h1 "Daily Breakdown"
           div '.total-issues', ->
             h1 '.header', -> "Total Issues Closed/Opened"
             canvas '.canvas', 'width': '920', 'height': '180'

@@ -306,7 +306,7 @@
           }
           $('.protip').append(teacup.render(function() {
             return div("." + el, function() {
-              h1("Weekly Breakdown");
+              h1("Daily Breakdown");
               div('.total-issues', function() {
                 h1('.header', function() {
                   return "Total Issues Closed/Opened";
