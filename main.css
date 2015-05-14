@@ -56,6 +56,11 @@
   display: inline-block;
   width: calc(100% / 3);
 }
+.protip .history > .set_large > .his-items {
+  display: inline-block;
+  vertical-align: top;
+  width: calc(100% / 3);
+}
 .protip .history > .set .avatar {
   width: 16px;
   display: inline-block;

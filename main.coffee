@@ -127,12 +127,24 @@ executeContent = ->
       $('.protip .info').before teacup.render ->
         div '.history animated fadeIn', ->
           div '.set_large', ->
-            h1 '.header', -> "Last 5 Issues Viewed by You"
+            h1 '.header', -> "Last 15 Issues Viewed by You"
             ol '.his-items', ->
-              arr = JSON.parse(localStorage['history']).reverse()
-              for loc in arr or []
+              arr = JSON.parse(localStorage['history']).reverse()[0..4]
+              for loc, index in arr or []
                 {title, url} = loc
-                li '.hist-item', ->
+                li '.hist-item', value: "#{index + 1}", ->
+                  a href:url, -> title
+            ol '.his-items', ->
+              arr = JSON.parse(localStorage['history']).reverse()[5..9]
+              for loc, index in arr or []
+                {title, url} = loc
+                li '.hist-item', value: "#{index + 6}", ->
+                  a href:url, -> title
+            ol '.his-items', ->
+              arr = JSON.parse(localStorage['history']).reverse()[9..14]
+              for loc, index in arr or []
+                {title, url} = loc
+                li '.hist-item', value: "#{index + 11}", ->
                   a href:url, -> title
 
           div '.set', ->
@@ -798,7 +810,7 @@ executeContent = ->
         url: key
       }
       console.log 'zzzzz', arr
-      arr = arr[-5..]
+      arr = arr[-15..]
       localStorage['history'] = JSON.stringify arr
 
 

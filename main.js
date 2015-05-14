@@ -147,17 +147,59 @@
           return div('.history animated fadeIn', function() {
             div('.set_large', function() {
               h1('.header', function() {
-                return "Last 5 Issues Viewed by You";
+                return "Last 15 Issues Viewed by You";
               });
-              return ol('.his-items', function() {
-                var arr, loc, title, url, _i, _len, _ref1, _results;
-                arr = JSON.parse(localStorage['history']).reverse();
+              ol('.his-items', function() {
+                var arr, index, loc, title, url, _i, _len, _ref1, _results;
+                arr = JSON.parse(localStorage['history']).reverse().slice(0, 5);
                 _ref1 = arr || [];
                 _results = [];
-                for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
-                  loc = _ref1[_i];
+                for (index = _i = 0, _len = _ref1.length; _i < _len; index = ++_i) {
+                  loc = _ref1[index];
                   title = loc.title, url = loc.url;
-                  _results.push(li('.hist-item', function() {
+                  _results.push(li('.hist-item', {
+                    value: "" + (index + 1)
+                  }, function() {
+                    return a({
+                      href: url
+                    }, function() {
+                      return title;
+                    });
+                  }));
+                }
+                return _results;
+              });
+              ol('.his-items', function() {
+                var arr, index, loc, title, url, _i, _len, _ref1, _results;
+                arr = JSON.parse(localStorage['history']).reverse().slice(5, 10);
+                _ref1 = arr || [];
+                _results = [];
+                for (index = _i = 0, _len = _ref1.length; _i < _len; index = ++_i) {
+                  loc = _ref1[index];
+                  title = loc.title, url = loc.url;
+                  _results.push(li('.hist-item', {
+                    value: "" + (index + 6)
+                  }, function() {
+                    return a({
+                      href: url
+                    }, function() {
+                      return title;
+                    });
+                  }));
+                }
+                return _results;
+              });
+              return ol('.his-items', function() {
+                var arr, index, loc, title, url, _i, _len, _ref1, _results;
+                arr = JSON.parse(localStorage['history']).reverse().slice(9, 15);
+                _ref1 = arr || [];
+                _results = [];
+                for (index = _i = 0, _len = _ref1.length; _i < _len; index = ++_i) {
+                  loc = _ref1[index];
+                  title = loc.title, url = loc.url;
+                  _results.push(li('.hist-item', {
+                    value: "" + (index + 11)
+                  }, function() {
                     return a({
                       href: url
                     }, function() {
@@ -944,7 +986,7 @@
             url: key
           });
           console.log('zzzzz', arr);
-          arr = arr.slice(-5);
+          arr = arr.slice(-15);
           return localStorage['history'] = JSON.stringify(arr);
         };
       })(this);
