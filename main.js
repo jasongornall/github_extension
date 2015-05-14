@@ -105,37 +105,149 @@
         return $el.find('.issue-title .issue-meta').append("<span class = 'new-comments animated fadeIn' style= 'color:orange;'>\n  nothing changed\n</span>");
       });
     };
-    injectHistory = function() {
+    injectHistory = function(_arg) {
+      var closed, open;
+      closed = _arg.closed, open = _arg.open;
       return chrome.runtime.sendMessage({
         type: 'get-config',
         config: 'user_history'
       }, function(data) {
+        var total_issues;
         if (data !== 'true') {
           return;
         }
         console.log('wakka');
-        return $('.protip').append(teacup.render(function() {
+        total_issues = $.merge(open.items, closed.items);
+        total_issues.sort(function(a, b) {
+          a = getDate(a.updated_at);
+          b = getDate(b.updated_at);
+          return a - b;
+        });
+        console.log(open, 'apple');
+        total_issues = total_issues.slice(-5);
+        total_issues = total_issues.reverse();
+        open = open.items;
+        open.sort(function(a, b) {
+          a = getDate(a.created_at);
+          b = getDate(b.created_at);
+          return a - b;
+        });
+        console.log(open, 'apple');
+        open = open.slice(-5);
+        open = open.reverse();
+        closed = closed.items;
+        closed.sort(function(a, b) {
+          a = getDate(a.closed_at);
+          b = getDate(b.closed_at);
+          return a - b;
+        });
+        closed = closed.slice(-5);
+        closed = closed.reverse();
+        return $('.protip .info').before(teacup.render(function() {
           return div('.history animated fadeIn', function() {
-            h1('.header', function() {
-              return "Last 5 Issues Viewed";
+            div('.set_large', function() {
+              h1('.header', function() {
+                return "Last 5 Issues Viewed by You";
+              });
+              return ol('.his-items', function() {
+                var arr, loc, title, url, _i, _len, _ref1, _results;
+                arr = JSON.parse(localStorage['history']).reverse();
+                _ref1 = arr || [];
+                _results = [];
+                for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
+                  loc = _ref1[_i];
+                  title = loc.title, url = loc.url;
+                  _results.push(li('.hist-item', function() {
+                    return a({
+                      href: url
+                    }, function() {
+                      return title;
+                    });
+                  }));
+                }
+                return _results;
+              });
             });
-            return ol('.his-items', function() {
-              var arr, loc, title, url, _i, _len, _ref1, _results;
-              arr = JSON.parse(localStorage['history']).reverse();
-              _ref1 = arr || [];
-              _results = [];
-              for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
-                loc = _ref1[_i];
-                title = loc.title, url = loc.url;
-                _results.push(li('.hist-item', function() {
-                  return a({
-                    href: url
-                  }, function() {
-                    return title;
-                  });
-                }));
-              }
-              return _results;
+            div('.set', function() {
+              h1('.header', function() {
+                return "Last 5 Issues Closed";
+              });
+              return ol('.his-items', function() {
+                var assignee, html_url, loc, title, _i, _len, _ref1, _results;
+                _ref1 = closed || [];
+                _results = [];
+                for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
+                  loc = _ref1[_i];
+                  title = loc.title, html_url = loc.html_url, assignee = loc.assignee;
+                  _results.push(li('.hist-item', function() {
+                    if (assignee.avatar_url) {
+                      img('.avatar', {
+                        src: "" + assignee.avatar_url + "&s=32"
+                      });
+                    }
+                    return a({
+                      href: html_url
+                    }, function() {
+                      return title;
+                    });
+                  }));
+                }
+                return _results;
+              });
+            });
+            div('.set', function() {
+              h1('.header', function() {
+                return "Last 5 Issues Opened";
+              });
+              return ol('.his-items', function() {
+                var assignee, html_url, loc, title, _i, _len, _ref1, _results;
+                _ref1 = open || [];
+                _results = [];
+                for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
+                  loc = _ref1[_i];
+                  title = loc.title, html_url = loc.html_url, assignee = loc.assignee;
+                  _results.push(li('.hist-item', function() {
+                    if (assignee.avatar_url) {
+                      img('.avatar', {
+                        src: "" + assignee.avatar_url + "&s=32"
+                      });
+                    }
+                    return a({
+                      href: html_url
+                    }, function() {
+                      return title;
+                    });
+                  }));
+                }
+                return _results;
+              });
+            });
+            return div('.set', function() {
+              h1('.header', function() {
+                return "Last 5 Issues Updated";
+              });
+              return ol('.his-items', function() {
+                var assignee, html_url, loc, title, _i, _len, _ref1, _results;
+                _ref1 = total_issues || [];
+                _results = [];
+                for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
+                  loc = _ref1[_i];
+                  title = loc.title, html_url = loc.html_url, assignee = loc.assignee;
+                  _results.push(li('.hist-item', function() {
+                    if (assignee.avatar_url) {
+                      img('.avatar', {
+                        src: "" + assignee.avatar_url + "&s=32"
+                      });
+                    }
+                    return a({
+                      href: html_url
+                    }, function() {
+                      return title;
+                    });
+                  }));
+                }
+                return _results;
+              });
             });
           });
         }));
@@ -757,7 +869,6 @@
       query_str = "" + query;
       per_page = 25;
       page = url.page || '1';
-      injectHistory();
       if (/issues$|\/issues\/assigned\/|\/milestones\//.test(pathname)) {
         injectPieChart('info', true, function(issues_data_1) {
           if (issues_data_1 == null) {
@@ -767,7 +878,11 @@
             if (issues_data_2 == null) {
               issues_data_2 = {};
             }
-            return injectBarGraph('info_3', {
+            injectBarGraph('info_3', {
+              closed: issues_data_1,
+              open: issues_data_2
+            });
+            return injectHistory({
               closed: issues_data_1,
               open: issues_data_2
             });
@@ -813,7 +928,7 @@
           if (!/issues\/\d+$|pull\/\d+$/.test(key)) {
             return;
           }
-          if (localStorage[key] < comment_total) {
+          if (localStorage[key] < comment_total || !localStorage[key]) {
             localStorage[key] = comment_total;
           }
           arr = JSON.parse(localStorage['history']);
@@ -828,6 +943,7 @@
             title: $('.js-issue-title').text(),
             url: key
           });
+          console.log('zzzzz', arr);
           arr = arr.slice(-5);
           return localStorage['history'] = JSON.stringify(arr);
         };
@@ -835,7 +951,9 @@
       comment_listener = setInterval((function() {
         var new_comments, _ref3;
         new_comments = (_ref3 = $('.timeline-comment-wrapper > .comment')) != null ? _ref3.length : void 0;
+        console.log('wakka');
         if (new_comments && new_comments !== comment_total) {
+          console.log('set');
           comment_total = new_comments;
           return inject_key();
         }

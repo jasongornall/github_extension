@@ -35,11 +35,12 @@
 }
 .protip .history .hist-item > a {
   display: inline-block;
-  width: 100%;
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
   vertical-align: bottom;
+  padding-left: 5px;
+  width: calc(100% - 16px);
 }
 
 .protip .history {
@@ -50,7 +51,15 @@
   text-align:  left;
   opacity: 0;
 }
-
+.protip .history > .set {
+  vertical-align: top;
+  display: inline-block;
+  width: calc(100% / 3);
+}
+.protip .history > .set .avatar {
+  width: 16px;
+  display: inline-block;
+}
 .milestone-breakdown .legend,
 .issues-closed .legend {
   display: inline-block;

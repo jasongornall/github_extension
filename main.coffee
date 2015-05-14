@@ -86,22 +86,85 @@ executeContent = ->
         nothing changed
       </span>
       """
-  injectHistory = ->
+  injectHistory = ({closed, open}) ->
     chrome.runtime.sendMessage {
       type: 'get-config'
       config: 'user_history'
     }, (data) ->
       return unless data is 'true'
       console.log 'wakka'
-      $('.protip').append teacup.render ->
+
+
+      # open graphs
+      total_issues = $.merge open.items, closed.items
+      total_issues.sort (a, b) ->
+        a = getDate a.updated_at
+        b = getDate b.updated_at
+        return a - b
+      console.log open, 'apple'
+      total_issues = total_issues[-5..]
+      total_issues = total_issues.reverse()
+
+      # open graphs
+      open = open.items
+      open.sort (a, b) ->
+        a = getDate a.created_at
+        b = getDate b.created_at
+        return a - b
+      console.log open, 'apple'
+      open = open[-5..]
+      open = open.reverse()
+
+      # closed graphs
+      closed = closed.items
+      closed.sort (a, b) ->
+        a = getDate a.closed_at
+        b = getDate b.closed_at
+        return a - b
+      closed = closed[-5..]
+      closed = closed.reverse()
+
+      $('.protip .info').before teacup.render ->
         div '.history animated fadeIn', ->
-          h1 '.header', -> "Last 5 Issues Viewed"
-          ol '.his-items', ->
-            arr = JSON.parse(localStorage['history']).reverse()
-            for loc in arr or []
-              {title, url} = loc
-              li '.hist-item', ->
-                a href:url, -> title
+          div '.set_large', ->
+            h1 '.header', -> "Last 5 Issues Viewed by You"
+            ol '.his-items', ->
+              arr = JSON.parse(localStorage['history']).reverse()
+              for loc in arr or []
+                {title, url} = loc
+                li '.hist-item', ->
+                  a href:url, -> title
+
+          div '.set', ->
+            h1 '.header', -> "Last 5 Issues Closed"
+            ol '.his-items', ->
+              for loc in closed or []
+                {title, html_url, assignee} = loc
+                li '.hist-item', ->
+                  if assignee.avatar_url
+                    img '.avatar', src: "#{assignee.avatar_url}&s=32"
+                  a href:html_url, -> title
+
+          div '.set', ->
+            h1 '.header', -> "Last 5 Issues Opened"
+            ol '.his-items', ->
+              for loc in open or []
+                {title, html_url, assignee} = loc
+                li '.hist-item', ->
+                  if assignee.avatar_url
+                    img '.avatar', src: "#{assignee.avatar_url}&s=32"
+                  a href:html_url, -> title
+
+          div '.set', ->
+            h1 '.header', -> "Last 5 Issues Updated"
+            ol '.his-items', ->
+              for loc in total_issues or []
+                {title, html_url, assignee} = loc
+                li '.hist-item', ->
+                  if assignee.avatar_url
+                    img '.avatar', src: "#{assignee.avatar_url}&s=32"
+                  a href:html_url, -> title
+
 
   injectBarGraph = (el, data) ->
     chrome.runtime.sendMessage {
@@ -682,12 +745,13 @@ executeContent = ->
     per_page = 25
     page = url.page or '1'
 
-    injectHistory()
+
     # canvas test
     if /issues$|\/issues\/assigned\/|\/milestones\//.test pathname
       injectPieChart 'info', true, (issues_data_1 = {}) ->
         injectPieChart 'info_2' , false, (issues_data_2 = {})->
           injectBarGraph 'info_3', {closed: issues_data_1, open: issues_data_2}
+          injectHistory {closed: issues_data_1, open: issues_data_2}
 
     chrome.runtime.sendMessage {
       type: 'search-info'
@@ -717,8 +781,9 @@ executeContent = ->
     comment_total = 0
     inject_key = =>
       key = new_url
+
       return unless /issues\/\d+$|pull\/\d+$/.test key
-      if localStorage[key] < comment_total
+      if localStorage[key] < comment_total or not localStorage[key]
         localStorage[key] = comment_total
 
       # prevent dupes
@@ -732,13 +797,16 @@ executeContent = ->
         title: $('.js-issue-title').text()
         url: key
       }
+      console.log 'zzzzz', arr
       arr = arr[-5..]
       localStorage['history'] = JSON.stringify arr
 
 
     comment_listener = setInterval ( ->
       new_comments = $('.timeline-comment-wrapper > .comment')?.length
+      console.log 'wakka'
       if new_comments and new_comments != comment_total
+        console.log 'set'
         comment_total = new_comments
         inject_key()
     ), 100
