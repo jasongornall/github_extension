@@ -13,10 +13,11 @@
 .protip > .info_3,
 .protip > .info_2,
 .protip > .info {
-  width: 100%;
   background: rgba(0, 0, 0, 0.1);
-  padding-top: 1px;
   margin-top: 40px;
+  padding-bottom: 5px;
+  padding-top: 1px;
+  width: 100%;
 }
 .protip > .info_3 > div,
 .protip > .info_2 > div,
