@@ -90,9 +90,9 @@ executeContent = ->
   injectHistory = ({closed, open}) ->
     chrome.runtime.sendMessage {
       type: 'get-config'
-      config: 'user_history'
+      config: ['user_history','issue_bar']
     }, (data) ->
-      return unless data is 'true'
+      return unless Object.keys(data).length
       console.log 'wakka'
 
 
@@ -127,56 +127,57 @@ executeContent = ->
 
       $('.protip .info').before teacup.render ->
         div '.history animated fadeIn', ->
-          div '.set_large', ->
-            h1 '.header', -> "Last 15 Issues Viewed by You"
-            ol '.his-items', ->
-              arr = JSON.parse(localStorage['history']).reverse()[0..4]
-              for loc, index in arr or []
-                {title, url} = loc
-                li '.hist-item', value: "#{index + 1}", ->
-                  a href:url, -> title
-            ol '.his-items', ->
-              arr = JSON.parse(localStorage['history']).reverse()[5..9]
-              for loc, index in arr or []
-                {title, url} = loc
-                li '.hist-item', value: "#{index + 6}", ->
-                  a href:url, -> title
-            ol '.his-items', ->
-              arr = JSON.parse(localStorage['history']).reverse()[10..14]
-              for loc, index in arr or []
-                {title, url} = loc
-                li '.hist-item', value: "#{index + 11}", ->
-                  a href:url, -> title
+          if data?.user_history is 'true'
+            div '.set_large', ->
+              h1 '.header', -> "Last 15 Issues Viewed by You"
+              ol '.his-items', ->
+                arr = JSON.parse(localStorage['history']).reverse()[0..4]
+                for loc, index in arr or []
+                  {title, url} = loc
+                  li '.hist-item', value: "#{index + 1}", ->
+                    a href:url, -> title
+              ol '.his-items', ->
+                arr = JSON.parse(localStorage['history']).reverse()[5..9]
+                for loc, index in arr or []
+                  {title, url} = loc
+                  li '.hist-item', value: "#{index + 6}", ->
+                    a href:url, -> title
+              ol '.his-items', ->
+                arr = JSON.parse(localStorage['history']).reverse()[10..14]
+                for loc, index in arr or []
+                  {title, url} = loc
+                  li '.hist-item', value: "#{index + 11}", ->
+                    a href:url, -> title
+          if data?.issue_bar is 'true'
+            div '.set', ->
+              h1 '.header', -> "Last 5 Issues Closed"
+              ol '.his-items', ->
+                for loc in closed or []
+                  {title, html_url, assignee} = loc
+                  li '.hist-item', ->
+                    if assignee.avatar_url
+                      img '.avatar', src: "#{assignee.avatar_url}&s=32"
+                    a href:html_url, -> title
 
-          div '.set', ->
-            h1 '.header', -> "Last 5 Issues Closed"
-            ol '.his-items', ->
-              for loc in closed or []
-                {title, html_url, assignee} = loc
-                li '.hist-item', ->
-                  if assignee.avatar_url
-                    img '.avatar', src: "#{assignee.avatar_url}&s=32"
-                  a href:html_url, -> title
+            div '.set', ->
+              h1 '.header', -> "Last 5 Issues Opened"
+              ol '.his-items', ->
+                for loc in open or []
+                  {title, html_url, assignee} = loc
+                  li '.hist-item', ->
+                    if assignee.avatar_url
+                      img '.avatar', src: "#{assignee.avatar_url}&s=32"
+                    a href:html_url, -> title
 
-          div '.set', ->
-            h1 '.header', -> "Last 5 Issues Opened"
-            ol '.his-items', ->
-              for loc in open or []
-                {title, html_url, assignee} = loc
-                li '.hist-item', ->
-                  if assignee.avatar_url
-                    img '.avatar', src: "#{assignee.avatar_url}&s=32"
-                  a href:html_url, -> title
-
-          div '.set', ->
-            h1 '.header', -> "Last 5 Issues Updated"
-            ol '.his-items', ->
-              for loc in total_issues or []
-                {title, html_url, assignee} = loc
-                li '.hist-item', ->
-                  if assignee.avatar_url
-                    img '.avatar', src: "#{assignee.avatar_url}&s=32"
-                  a href:html_url, -> title
+            div '.set', ->
+              h1 '.header', -> "Last 5 Issues Updated"
+              ol '.his-items', ->
+                for loc in total_issues or []
+                  {title, html_url, assignee} = loc
+                  li '.hist-item', ->
+                    if assignee.avatar_url
+                      img '.avatar', src: "#{assignee.avatar_url}&s=32"
+                    a href:html_url, -> title
 
 
   injectBarGraph = (el, data) ->

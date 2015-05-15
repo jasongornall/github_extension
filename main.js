@@ -112,10 +112,10 @@
       closed = _arg.closed, open = _arg.open;
       return chrome.runtime.sendMessage({
         type: 'get-config',
-        config: 'user_history'
+        config: ['user_history', 'issue_bar']
       }, function(data) {
         var total_issues;
-        if (data !== 'true') {
+        if (!Object.keys(data).length) {
           return;
         }
         console.log('wakka');
@@ -147,152 +147,156 @@
         closed = closed.reverse();
         return $('.protip .info').before(teacup.render(function() {
           return div('.history animated fadeIn', function() {
-            div('.set_large', function() {
-              h1('.header', function() {
-                return "Last 15 Issues Viewed by You";
-              });
-              ol('.his-items', function() {
-                var arr, index, loc, title, url, _i, _len, _ref1, _results;
-                arr = JSON.parse(localStorage['history']).reverse().slice(0, 5);
-                _ref1 = arr || [];
-                _results = [];
-                for (index = _i = 0, _len = _ref1.length; _i < _len; index = ++_i) {
-                  loc = _ref1[index];
-                  title = loc.title, url = loc.url;
-                  _results.push(li('.hist-item', {
-                    value: "" + (index + 1)
-                  }, function() {
-                    return a({
-                      href: url
+            if ((data != null ? data.user_history : void 0) === 'true') {
+              div('.set_large', function() {
+                h1('.header', function() {
+                  return "Last 15 Issues Viewed by You";
+                });
+                ol('.his-items', function() {
+                  var arr, index, loc, title, url, _i, _len, _ref1, _results;
+                  arr = JSON.parse(localStorage['history']).reverse().slice(0, 5);
+                  _ref1 = arr || [];
+                  _results = [];
+                  for (index = _i = 0, _len = _ref1.length; _i < _len; index = ++_i) {
+                    loc = _ref1[index];
+                    title = loc.title, url = loc.url;
+                    _results.push(li('.hist-item', {
+                      value: "" + (index + 1)
                     }, function() {
-                      return title;
-                    });
-                  }));
-                }
-                return _results;
-              });
-              ol('.his-items', function() {
-                var arr, index, loc, title, url, _i, _len, _ref1, _results;
-                arr = JSON.parse(localStorage['history']).reverse().slice(5, 10);
-                _ref1 = arr || [];
-                _results = [];
-                for (index = _i = 0, _len = _ref1.length; _i < _len; index = ++_i) {
-                  loc = _ref1[index];
-                  title = loc.title, url = loc.url;
-                  _results.push(li('.hist-item', {
-                    value: "" + (index + 6)
-                  }, function() {
-                    return a({
-                      href: url
-                    }, function() {
-                      return title;
-                    });
-                  }));
-                }
-                return _results;
-              });
-              return ol('.his-items', function() {
-                var arr, index, loc, title, url, _i, _len, _ref1, _results;
-                arr = JSON.parse(localStorage['history']).reverse().slice(10, 15);
-                _ref1 = arr || [];
-                _results = [];
-                for (index = _i = 0, _len = _ref1.length; _i < _len; index = ++_i) {
-                  loc = _ref1[index];
-                  title = loc.title, url = loc.url;
-                  _results.push(li('.hist-item', {
-                    value: "" + (index + 11)
-                  }, function() {
-                    return a({
-                      href: url
-                    }, function() {
-                      return title;
-                    });
-                  }));
-                }
-                return _results;
-              });
-            });
-            div('.set', function() {
-              h1('.header', function() {
-                return "Last 5 Issues Closed";
-              });
-              return ol('.his-items', function() {
-                var assignee, html_url, loc, title, _i, _len, _ref1, _results;
-                _ref1 = closed || [];
-                _results = [];
-                for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
-                  loc = _ref1[_i];
-                  title = loc.title, html_url = loc.html_url, assignee = loc.assignee;
-                  _results.push(li('.hist-item', function() {
-                    if (assignee.avatar_url) {
-                      img('.avatar', {
-                        src: "" + assignee.avatar_url + "&s=32"
+                      return a({
+                        href: url
+                      }, function() {
+                        return title;
                       });
-                    }
-                    return a({
-                      href: html_url
+                    }));
+                  }
+                  return _results;
+                });
+                ol('.his-items', function() {
+                  var arr, index, loc, title, url, _i, _len, _ref1, _results;
+                  arr = JSON.parse(localStorage['history']).reverse().slice(5, 10);
+                  _ref1 = arr || [];
+                  _results = [];
+                  for (index = _i = 0, _len = _ref1.length; _i < _len; index = ++_i) {
+                    loc = _ref1[index];
+                    title = loc.title, url = loc.url;
+                    _results.push(li('.hist-item', {
+                      value: "" + (index + 6)
                     }, function() {
-                      return title;
-                    });
-                  }));
-                }
-                return _results;
-              });
-            });
-            div('.set', function() {
-              h1('.header', function() {
-                return "Last 5 Issues Opened";
-              });
-              return ol('.his-items', function() {
-                var assignee, html_url, loc, title, _i, _len, _ref1, _results;
-                _ref1 = open || [];
-                _results = [];
-                for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
-                  loc = _ref1[_i];
-                  title = loc.title, html_url = loc.html_url, assignee = loc.assignee;
-                  _results.push(li('.hist-item', function() {
-                    if (assignee.avatar_url) {
-                      img('.avatar', {
-                        src: "" + assignee.avatar_url + "&s=32"
+                      return a({
+                        href: url
+                      }, function() {
+                        return title;
                       });
-                    }
-                    return a({
-                      href: html_url
+                    }));
+                  }
+                  return _results;
+                });
+                return ol('.his-items', function() {
+                  var arr, index, loc, title, url, _i, _len, _ref1, _results;
+                  arr = JSON.parse(localStorage['history']).reverse().slice(10, 15);
+                  _ref1 = arr || [];
+                  _results = [];
+                  for (index = _i = 0, _len = _ref1.length; _i < _len; index = ++_i) {
+                    loc = _ref1[index];
+                    title = loc.title, url = loc.url;
+                    _results.push(li('.hist-item', {
+                      value: "" + (index + 11)
                     }, function() {
-                      return title;
-                    });
-                  }));
-                }
-                return _results;
-              });
-            });
-            return div('.set', function() {
-              h1('.header', function() {
-                return "Last 5 Issues Updated";
-              });
-              return ol('.his-items', function() {
-                var assignee, html_url, loc, title, _i, _len, _ref1, _results;
-                _ref1 = total_issues || [];
-                _results = [];
-                for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
-                  loc = _ref1[_i];
-                  title = loc.title, html_url = loc.html_url, assignee = loc.assignee;
-                  _results.push(li('.hist-item', function() {
-                    if (assignee.avatar_url) {
-                      img('.avatar', {
-                        src: "" + assignee.avatar_url + "&s=32"
+                      return a({
+                        href: url
+                      }, function() {
+                        return title;
                       });
-                    }
-                    return a({
-                      href: html_url
-                    }, function() {
-                      return title;
-                    });
-                  }));
-                }
-                return _results;
+                    }));
+                  }
+                  return _results;
+                });
               });
-            });
+            }
+            if ((data != null ? data.issue_bar : void 0) === 'true') {
+              div('.set', function() {
+                h1('.header', function() {
+                  return "Last 5 Issues Closed";
+                });
+                return ol('.his-items', function() {
+                  var assignee, html_url, loc, title, _i, _len, _ref1, _results;
+                  _ref1 = closed || [];
+                  _results = [];
+                  for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
+                    loc = _ref1[_i];
+                    title = loc.title, html_url = loc.html_url, assignee = loc.assignee;
+                    _results.push(li('.hist-item', function() {
+                      if (assignee.avatar_url) {
+                        img('.avatar', {
+                          src: "" + assignee.avatar_url + "&s=32"
+                        });
+                      }
+                      return a({
+                        href: html_url
+                      }, function() {
+                        return title;
+                      });
+                    }));
+                  }
+                  return _results;
+                });
+              });
+              div('.set', function() {
+                h1('.header', function() {
+                  return "Last 5 Issues Opened";
+                });
+                return ol('.his-items', function() {
+                  var assignee, html_url, loc, title, _i, _len, _ref1, _results;
+                  _ref1 = open || [];
+                  _results = [];
+                  for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
+                    loc = _ref1[_i];
+                    title = loc.title, html_url = loc.html_url, assignee = loc.assignee;
+                    _results.push(li('.hist-item', function() {
+                      if (assignee.avatar_url) {
+                        img('.avatar', {
+                          src: "" + assignee.avatar_url + "&s=32"
+                        });
+                      }
+                      return a({
+                        href: html_url
+                      }, function() {
+                        return title;
+                      });
+                    }));
+                  }
+                  return _results;
+                });
+              });
+              return div('.set', function() {
+                h1('.header', function() {
+                  return "Last 5 Issues Updated";
+                });
+                return ol('.his-items', function() {
+                  var assignee, html_url, loc, title, _i, _len, _ref1, _results;
+                  _ref1 = total_issues || [];
+                  _results = [];
+                  for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
+                    loc = _ref1[_i];
+                    title = loc.title, html_url = loc.html_url, assignee = loc.assignee;
+                    _results.push(li('.hist-item', function() {
+                      if (assignee.avatar_url) {
+                        img('.avatar', {
+                          src: "" + assignee.avatar_url + "&s=32"
+                        });
+                      }
+                      return a({
+                        href: html_url
+                      }, function() {
+                        return title;
+                      });
+                    }));
+                  }
+                  return _results;
+                });
+              });
+            }
           });
         }));
       });
