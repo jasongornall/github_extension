@@ -95,7 +95,6 @@ executeContent = ->
       config: ['user_history','issue_bar']
     }, (data) ->
       return unless Object.keys(data).length
-      console.log 'wakka'
 
 
       # open graphs
@@ -104,7 +103,6 @@ executeContent = ->
         a = getDate a.updated_at
         b = getDate b.updated_at
         return a - b
-      console.log open, 'apple'
       total_issues = total_issues[-5..]
       total_issues = total_issues.reverse()
 
@@ -114,7 +112,6 @@ executeContent = ->
         a = getDate a.created_at
         b = getDate b.created_at
         return a - b
-      console.log open, 'apple'
       open = open[-5..]
       open = open.reverse()
 
@@ -431,7 +428,6 @@ executeContent = ->
 
 
         $(".protip .#{el} .user-opened .canvas").click (e) ->
-          console.log 'HIT'
           activeBars = myPieChart.getBarsAtEvent(e)
           eventData = Chart.helpers.getRelativePosition(e)
           currentBar = null
@@ -454,7 +450,6 @@ executeContent = ->
           else
             assignee = "assignee:#{assignee}"
 
-          console.log "created:#{created}"
 
           $('#js-issues-search').val("created:#{created} #{assignee} is:issue")
           $('#js-issues-search').closest('form').submit()
@@ -552,7 +547,6 @@ executeContent = ->
           legendHolder = $legend[0]
 
           $legend.find('.pie-legend li').on 'click', (e) ->
-            console.log 'INSIDE'
             $el = $ e.currentTarget
             assignee = $el.find('span').text().trim()
             if assignee is 'unassigned'
@@ -813,7 +807,6 @@ executeContent = ->
         title: $('.js-issue-title').text()
         url: key
       }
-      console.log 'zzzzz', arr
       arr = arr[-15..]
       localStorage['history'] = JSON.stringify arr
 

@@ -121,14 +121,12 @@
         if (!Object.keys(data).length) {
           return;
         }
-        console.log('wakka');
         total_issues = $.merge(open.items, closed.items);
         total_issues.sort(function(a, b) {
           a = getDate(a.updated_at);
           b = getDate(b.updated_at);
           return a - b;
         });
-        console.log(open, 'apple');
         total_issues = total_issues.slice(-5);
         total_issues = total_issues.reverse();
         open = open.items;
@@ -137,7 +135,6 @@
           b = getDate(b.created_at);
           return a - b;
         });
-        console.log(open, 'apple');
         open = open.slice(-5);
         open = open.reverse();
         closed = closed.items;
@@ -545,7 +542,6 @@
             $legend.html(myPieChart.generateLegend());
             return $(".protip ." + el + " .user-opened .canvas").click(function(e) {
               var activeBars, assignee, bar, created, currentBar, current_label, dayCount, eventData, labels, t, _j, _len1;
-              console.log('HIT');
               activeBars = myPieChart.getBarsAtEvent(e);
               eventData = Chart.helpers.getRelativePosition(e);
               currentBar = null;
@@ -571,7 +567,6 @@
               } else {
                 assignee = "assignee:" + assignee;
               }
-              console.log("created:" + created);
               $('#js-issues-search').val("created:" + created + " " + assignee + " is:issue");
               $('#js-issues-search').closest('form').submit();
             });
@@ -701,7 +696,6 @@
               legendHolder = $legend[0];
               $legend.find('.pie-legend li').on('click', function(e) {
                 var $el, assignee;
-                console.log('INSIDE');
                 $el = $(e.currentTarget);
                 assignee = $el.find('span').text().trim();
                 if (assignee === 'unassigned') {
@@ -994,7 +988,6 @@
             title: $('.js-issue-title').text(),
             url: key
           });
-          console.log('zzzzz', arr);
           arr = arr.slice(-15);
           return localStorage['history'] = JSON.stringify(arr);
         };
