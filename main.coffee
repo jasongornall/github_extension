@@ -15,7 +15,8 @@ window.urlWatchInterval  = setInterval ( ->
     config: 'disable'
   }, (data) ->
     return if data is 'true'
-    new_url = window.location.href
+    url_obj = new URL(window.location.href)
+    new_url = "#{url_obj.origin}#{url_obj.pathname}"
     if (old_url != new_url)
       if executeContent()
         old_url = new_url
@@ -816,9 +817,7 @@ executeContent = ->
 
     comment_listener = setInterval ( ->
       new_comments = $('.timeline-comment-wrapper > .comment')?.length
-      console.log 'wakka'
       if new_comments and new_comments != comment_total
-        console.log 'set'
         comment_total = new_comments
         inject_key()
     ), 100

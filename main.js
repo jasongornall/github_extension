@@ -17,10 +17,12 @@
       type: 'get-config',
       config: 'disable'
     }, function(data) {
+      var url_obj;
       if (data === 'true') {
         return;
       }
-      new_url = window.location.href;
+      url_obj = new URL(window.location.href);
+      new_url = "" + url_obj.origin + url_obj.pathname;
       if (old_url !== new_url) {
         if (executeContent()) {
           return old_url = new_url;
@@ -993,9 +995,7 @@
       comment_listener = setInterval((function() {
         var new_comments, _ref3;
         new_comments = (_ref3 = $('.timeline-comment-wrapper > .comment')) != null ? _ref3.length : void 0;
-        console.log('wakka');
         if (new_comments && new_comments !== comment_total) {
-          console.log('set');
           comment_total = new_comments;
           return inject_key();
         }
