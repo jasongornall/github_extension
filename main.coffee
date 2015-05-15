@@ -7,6 +7,7 @@
 # grab teacup
 old_url = ''
 new_url = ''
+stripped_url = ''
 comment_listener = null
 clearInterval window.urlWatchInterval if window.urlWatchInterval
 window.urlWatchInterval  = setInterval ( ->
@@ -15,9 +16,10 @@ window.urlWatchInterval  = setInterval ( ->
     config: 'disable'
   }, (data) ->
     return if data is 'true'
-    url_obj = new URL(window.location.href)
-    new_url = "#{url_obj.origin}#{url_obj.pathname}"
+    new_url = window.location.href
     if (old_url != new_url)
+      url_obj = new URL(new_url)
+      stripped_url = "#{url_obj.origin}#{url_obj.pathname}"
       if executeContent()
         old_url = new_url
 ), 1000
@@ -794,7 +796,7 @@ executeContent = ->
     # don't do it for new pages
     comment_total = 0
     inject_key = =>
-      key = new_url
+      key = stripped_url
 
       return unless /issues\/\d+$|pull\/\d+$/.test key
       if localStorage[key] < comment_total or not localStorage[key]
