@@ -57,7 +57,7 @@ executeContent = ->
       config: 'new'
     }, (data) ->
       return unless data is 'true'
-      $el = $("li[data-issue-id='#{ticket}']")
+      $el = $("li[id='issue_#{ticket}']")
       $el.find('.issue-title .issue-meta').append """
       <span class = 'new-comments animated fadeIn' style= 'color:purple;'>
         #{difference} new comments
@@ -70,7 +70,7 @@ executeContent = ->
       config: 'unread'
     }, (data) ->
       return unless data is 'true'
-      $el = $("li[data-issue-id='#{ticket}']")
+      $el = $("li[id='issue_#{ticket}']")
       $el.find('.issue-title .issue-meta').append """
       <span class = 'new-comments animated fadeIn' style= 'color:green;'>
         unread ticket
@@ -83,7 +83,7 @@ executeContent = ->
       config: 'nochange'
     }, (data) ->
       return unless data is 'true'
-      $el = $("li[data-issue-id='#{ticket}']")
+      $el = $("li[id='issue_#{ticket}']")
       $el.find('.issue-title .issue-meta').append """
       <span class = 'new-comments animated fadeIn' style= 'color:orange;'>
         nothing changed
@@ -98,6 +98,8 @@ executeContent = ->
 
 
       # open graphs
+      open.items ?= []
+      closed.items ?= []
       total_issues = $.merge open.items, closed.items
       total_issues.sort (a, b) ->
         a = getDate a.updated_at

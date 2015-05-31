@@ -80,7 +80,7 @@
         if (data !== 'true') {
           return;
         }
-        $el = $("li[data-issue-id='" + ticket + "']");
+        $el = $("li[id='issue_" + ticket + "']");
         return $el.find('.issue-title .issue-meta').append("<span class = 'new-comments animated fadeIn' style= 'color:purple;'>\n  " + difference + " new comments\n</span>");
       });
     };
@@ -93,7 +93,7 @@
         if (data !== 'true') {
           return;
         }
-        $el = $("li[data-issue-id='" + ticket + "']");
+        $el = $("li[id='issue_" + ticket + "']");
         return $el.find('.issue-title .issue-meta').append("<span class = 'new-comments animated fadeIn' style= 'color:green;'>\n  unread ticket\n</span>");
       });
     };
@@ -106,7 +106,7 @@
         if (data !== 'true') {
           return;
         }
-        $el = $("li[data-issue-id='" + ticket + "']");
+        $el = $("li[id='issue_" + ticket + "']");
         return $el.find('.issue-title .issue-meta').append("<span class = 'new-comments animated fadeIn' style= 'color:orange;'>\n  nothing changed\n</span>");
       });
     };
@@ -120,6 +120,12 @@
         var total_issues;
         if (!Object.keys(data).length) {
           return;
+        }
+        if (open.items == null) {
+          open.items = [];
+        }
+        if (closed.items == null) {
+          closed.items = [];
         }
         total_issues = $.merge(open.items, closed.items);
         total_issues.sort(function(a, b) {
